@@ -1,0 +1,21 @@
+security:
+  user.password: fake
+hdfs:
+  brokerusername: fake
+  brokergroupname: fake
+  brokeruserpass: fake
+  binding.xattr: user.binding
+  instance.xattr: user.instance
+  metadata.chroot: /tmp/cf/broker/metadata
+  provided.params: "{\"HADOOP_CONFIG_KEY\": {\"fs.defaultFS\": \"fake\"}}"
+  userspace.chroot: /tmp/cf/broker/userspace
+cf:
+  servicename: fake
+  serviceid: fake
+  baseId: fake
+kerberos:
+  kdc: fake
+  realm: fake
+  namenodeprincipal: fake
+metadata:
+  imageUrl: ${IMAGE_URL:}

@@ -1,0 +1,29 @@
+security:
+#password cf client will use when interacting with broker
+  user.password: ${user.password}
+hdfs:
+  brokerusername: cf
+  brokergroupname: supergroup
+  brokeruserpass: cf1
+  #name of extended attribute holding information about binding
+  binding.xattr: user.binding
+  #name of extended attribute holding information about broker instance
+  instance.xattr: user.instance
+  #path on hdfs where service instance and service binding metadata are stored
+  metadata.chroot: ${broker.path:/cf/broker}/metadata
+  #path on hdfs where broker creates dirs for user apps
+  userspace.chroot: ${broker.path:/cf/broker}/userspace
+  provided.params: ${hadoop.provided.params:{}}
+cf:
+  #name of service in cloud foundry catalog
+  servicename: ${cf.catalog.servicename:hdfs}
+  #id of service in cloud foundry catalog
+  serviceid: ${cf.catalog.serviceid:hdfs}
+  #id of base plan in cloud foundry catalog
+  baseId: ${BASE_GUID:}
+kerberos:
+  kdc: ${krb.kdc.host:}
+  realm: ${krb.realm:}
+  namenodeprincipal: ${krb.namenodeprincipal:}
+metadata:
+  imageUrl: ${IMAGE_URL:}
