@@ -7,13 +7,12 @@
     <parent>
         <groupId>org.trustedanalytics</groupId>
         <artifactId>spring-project-template</artifactId>
-        <version>0.4.1</version>
+        <version>0.4.2-SNAPSHOT</version>
     </parent>
 
     <properties>
         <brokerVersion>2.4.2</brokerVersion>
         <brokerTestVersion>2.4.1</brokerTestVersion>
-        <cdhVersion>2.5.0-cdh5.3.2</cdhVersion>
         <start-class>org.trustedanalytics.servicebroker.hdfs.config.Application</start-class>
     </properties>
     <scm>
@@ -203,7 +202,7 @@
         <dependency>
             <groupId>org.trustedanalytics</groupId>
             <artifactId>hadoop-utils</artifactId>
-            <version>0.4.1</version>
+            <version>0.4.2-SNAPSHOT</version>
         </dependency>
 
         <dependency>
