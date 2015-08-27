@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hdfs-broker</artifactId>
     <version>0.4.2-SNAPSHOT</version>
@@ -7,7 +8,7 @@
     <parent>
         <groupId>org.trustedanalytics</groupId>
         <artifactId>spring-project-template</artifactId>
-        <version>0.4.2-SNAPSHOT</version>
+        <version>0.4.3</version>
     </parent>
 
     <properties>
@@ -15,12 +16,18 @@
         <brokerTestVersion>2.4.1</brokerTestVersion>
         <start-class>org.trustedanalytics.servicebroker.hdfs.config.Application</start-class>
     </properties>
-    <scm>
-        <connection>scm:git:git@hdfs-broker:trustedanalytics/hdfs-broker.git</connection>
-      <tag>HEAD</tag>
-  </scm>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/cloudfoundry</directory>
+                <filtering>true</filtering>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -59,7 +66,7 @@
                     </execution>
                 </executions>
             </plugin>
-	    <plugin>
+            <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
                 <version>2.6</version>
@@ -68,12 +75,12 @@
                     <includes>
                         <include>src/**/*.java</include>
                         <include>provision.sh</include>
-		        <include>deprovision.sh</include>
+                        <include>deprovision.sh</include>
                         <include>license/*.sh</include>
-                    </includes>                  
+                    </includes>
                     <mapping>
                         <java>JAVADOC_STYLE</java>
-                        <sh> SCRIPT_STYLE</sh>
+                        <sh>SCRIPT_STYLE</sh>
                     </mapping>
                 </configuration>
                 <executions>
@@ -85,6 +92,25 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <phase>package</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <executable>cp</executable>
+                    <arguments>
+                        <argument>target/classes/manifest.yml</argument>
+                        <argument>manifest.yml</argument>
+                    </arguments>
+                </configuration>
             </plugin>
         </plugins>
     </build>
@@ -109,13 +135,13 @@
         <dependency>
             <groupId>org.trustedanalytics.servicebroker.repository</groupId>
             <artifactId>broker-store-commons</artifactId>
-            <version>0.4.1</version>
+            <version>0.4.3</version>
         </dependency>
 
         <dependency>
             <groupId>org.trustedanalytics.servicebroker.repository</groupId>
             <artifactId>hdfs-broker-store</artifactId>
-            <version>0.4.1</version>
+            <version>0.4.3</version>
             <exclusions>
                 <exclusion>
                     <groupId>javax.servlet</groupId>
@@ -202,7 +228,7 @@
         <dependency>
             <groupId>org.trustedanalytics</groupId>
             <artifactId>hadoop-utils</artifactId>
-            <version>0.4.2-SNAPSHOT</version>
+            <version>0.4.3</version>
         </dependency>
 
         <dependency>

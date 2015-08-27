@@ -24,6 +24,5 @@ cf:
 kerberos:
   kdc: ${krb.kdc.host:}
   realm: ${krb.realm:}
-  namenodeprincipal: ${krb.namenodeprincipal:}
 metadata:
   imageUrl: ${IMAGE_URL:}

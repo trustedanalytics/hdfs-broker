@@ -1,0 +1,14 @@
+applications:
+- name: hdfs-broker
+  memory: 512M
+  instances: 1
+  host: hdfs-broker
+  path: target/hdfs-broker-${version}.jar
+  env:
+    HADOOP_PROVIDED_PARAMS: "placeholder"
+    BROKER_PATH: "placeholder"
+    KRB_KDC_HOST: "placeholder"
+    KRB_REALM: "placeholder"
+    USER_PASSWORD: "placeholder"
+    BASE_GUID: "placeholder"
+    IMAGE_URL: "placeholder"

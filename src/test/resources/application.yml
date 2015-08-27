@@ -16,6 +16,5 @@ cf:
 kerberos:
   kdc: fake
   realm: fake
-  namenodeprincipal: fake
 metadata:
   imageUrl: ${IMAGE_URL:}
