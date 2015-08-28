@@ -134,13 +134,13 @@
         <dependency>
             <groupId>org.trustedanalytics.servicebroker.repository</groupId>
             <artifactId>broker-store-commons</artifactId>
-            <version>0.4.3</version>
+            <version>0.4.4</version>
         </dependency>
 
         <dependency>
             <groupId>org.trustedanalytics.servicebroker.repository</groupId>
             <artifactId>hdfs-broker-store</artifactId>
-            <version>0.4.3</version>
+            <version>0.4.4</version>
             <exclusions>
                 <exclusion>
                     <groupId>javax.servlet</groupId>
