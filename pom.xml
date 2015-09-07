@@ -77,6 +77,9 @@
                         <include>deprovision.sh</include>
                         <include>license/*.sh</include>
                     </includes>
+                    <excludes>
+                        <exclude>src/main/java/org/trustedanalytics/servicebroker/hdfs/config/BrokerConfig.java</exclude>
+                    </excludes>
                     <mapping>
                         <java>JAVADOC_STYLE</java>
                         <sh>SCRIPT_STYLE</sh>
