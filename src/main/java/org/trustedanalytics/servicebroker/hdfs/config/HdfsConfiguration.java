@@ -15,10 +15,12 @@
  */
 package org.trustedanalytics.servicebroker.hdfs.config;
 
+import org.trustedanalytics.hadoop.config.ConfigurationHelper;
+import org.trustedanalytics.hadoop.config.ConfigurationHelperImpl;
+import org.trustedanalytics.hadoop.config.PropertyLocator;
 import org.trustedanalytics.hadoop.kerberos.KrbLoginManager;
 import org.trustedanalytics.hadoop.kerberos.KrbLoginManagerFactory;
 import org.trustedanalytics.servicebroker.hdfs.service.HdfsServiceInstanceBindingService;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.slf4j.Logger;
@@ -43,6 +45,8 @@ public class HdfsConfiguration {
 
     private static final String AUTHENTICATION_METHOD_PROPERTY = "hadoop.security.authentication";
 
+    private ConfigurationHelper confHelper = ConfigurationHelperImpl.getInstance();
+
     @Autowired
     private ExternalConfiguration configuration;
 
@@ -66,11 +70,12 @@ public class HdfsConfiguration {
 
         KrbLoginManager loginManager =
                 KrbLoginManagerFactory.getInstance().getKrbLoginManagerInstance(
-                        configuration.getKerberosKdc(),
-                        configuration.getKerberosRealm());
+                        getPropertyFromCredentials(PropertyLocator.KRB_KDC),
+                        getPropertyFromCredentials(PropertyLocator.KRB_REALM));
+
         loginManager.loginInHadoop(loginManager.loginWithCredentials(
-            configuration.getBrokerUserName(),
-            configuration.getBrokerUserPassword().toCharArray()), hadoopConf);
+                getPropertyFromCredentials(PropertyLocator.USER),
+                getPropertyFromCredentials(PropertyLocator.PASSWORD).toCharArray()), hadoopConf);
         LOGGER.info("Creating filesytem with kerberos auth");
         return FileSystem.get(hadoopConf);
     }
@@ -84,7 +89,11 @@ public class HdfsConfiguration {
         LOGGER.info("Creating filesytem without kerberos auth");
         return FileSystem.get(
             new URI(hadoopConf.getRaw(HdfsServiceInstanceBindingService.HADOOP_DEFAULT_FS)),
-            hadoopConf, configuration.getBrokerUserName());
+            hadoopConf, getPropertyFromCredentials(PropertyLocator.USER));
     }
 
+    private String getPropertyFromCredentials(PropertyLocator property) throws IOException{
+        return confHelper.getPropertyFromEnv(property)
+                .orElseThrow(() -> new IllegalStateException(property.name() + " not found in VCAP_SERVICES"));
+    }
 }

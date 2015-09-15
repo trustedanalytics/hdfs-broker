@@ -19,12 +19,8 @@ import com.google.common.collect.ImmutableMap;
 
 import org.trustedanalytics.cfbroker.store.api.BrokerStore;
 import org.trustedanalytics.cfbroker.store.impl.ServiceInstanceBindingServiceStore;
-import org.trustedanalytics.hadoop.config.ConfigConstants;
-import org.trustedanalytics.hadoop.config.ConfigurationHelper;
-import org.trustedanalytics.hadoop.config.ConfigurationHelperImpl;
-import org.trustedanalytics.hadoop.config.ConfigurationLocator;
+import org.trustedanalytics.hadoop.config.*;
 import org.trustedanalytics.servicebroker.hdfs.service.HdfsServiceInstanceBindingService;
-
 import org.cloudfoundry.community.servicebroker.model.CreateServiceInstanceBindingRequest;
 import org.cloudfoundry.community.servicebroker.service.ServiceInstanceBindingService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,10 +62,13 @@ public class ServiceInstanceBindingServiceConfig {
         return ImmutableMap.of(
                 HdfsServiceInstanceBindingService.HADOOP_DEFAULT_FS,
                 configParams.get(HdfsServiceInstanceBindingService.HADOOP_DEFAULT_FS),
-                "kerberos", ImmutableMap.of("kdc", configuration.getKerberosKdc(),
-                "krealm", configuration.getKerberosRealm()),
+                "kerberos", ImmutableMap.of(
+                        "kdc", helper.getPropertyFromEnv(PropertyLocator.KRB_KDC)
+                                .orElse(""),
+                        "krealm", helper.getPropertyFromEnv(PropertyLocator.KRB_REALM)
+                                .orElse("")),
                 ConfigConstants.HADOOP_CONFIG_KEY_VALUE,
-                ImmutableMap.copyOf(configParams)
+                    ImmutableMap.copyOf(configParams)
         );
     }
 }

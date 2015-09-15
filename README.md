@@ -18,6 +18,9 @@ Push broker binary code to cloud foundry (use cf client).:
 cf push hdfs-broker -p target/hdfs-broker-*.jar -m 512M -i 1 --no-start
 ```
 
+## Kerberos configuration
+Broker should be bind to existing kerberos provided service. This will provide default kerberos configuration, for REALM and KDC host.
+
 ## Configure
 For strict separation of config from code (twelve-factor principle), configuration must be placed in environment variables.
  
@@ -28,24 +31,12 @@ called further **secure profile** configuration, or with hadoop in insecure mode
 Broker configuration params list (environment properties):
 * obligatory :t
   * USER_PASSWORD - password to interact with service broker
-* obligatory only on secure profile :
-  * KRB_KDC_HOST - kerberos kdc host address
-  * KRB_REALM - kerberos realm name
 * optional :
   * BASE_GUID - base id for catalog plan creation (uuid)
   * BROKER_PATH - path where broker related folders and data will be located on HDFS (default: /cf/broker). **Don't put / at the end.** After setting BROKER_PATH to ```/example/broker``` hdfs-broker will be configured to store service instances and bindings metadata at ```/example/broker/metadata```, and to provision directories for user's applications at ```/example/broker/userspace```.
   * CF_CATALOG_SERVICENAME - service name in cloud foundry catalog (default: hdfs)
   * CF_CATALOG_SERVICEID - service id in cloud foundry catalog (default: hdfs)
   * HADOOP_PROVIDED_PARAMS - list of hadoop configuration parameters exposed by service (json format, default: {})
-
-For instance.:
-
-Secure profile configuration.
-```
-cf se hdfs-broker KRB_KDC_HOST ip-10-10-9-198.us-west-2.compute.internal
-cf se hdfs-broker KRB_REALM US-WEST-2.COMPUTE.INTERNAL
-```
-
 
 ### Injection of HDFS client configuration
 HDFS client configuration must be set via HADOOP_PROVIDED_PARAMS environment variable. List of hadoop configuration has to be proper json form:

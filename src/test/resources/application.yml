@@ -13,8 +13,5 @@ cf:
   servicename: fake
   serviceid: fake
   baseId: fake
-kerberos:
-  kdc: fake
-  realm: fake
 metadata:
   imageUrl: ${IMAGE_URL:}

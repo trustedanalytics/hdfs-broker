@@ -2,9 +2,7 @@ security:
 #password cf client will use when interacting with broker
   user.password: ${user.password}
 hdfs:
-  brokerusername: cf
   brokergroupname: supergroup
-  brokeruserpass: cf1
   #name of extended attribute holding information about binding
   binding.xattr: user.binding
   #name of extended attribute holding information about broker instance
@@ -21,8 +19,5 @@ cf:
   serviceid: ${cf.catalog.serviceid:hdfs}
   #id of base plan in cloud foundry catalog
   baseId: ${BASE_GUID:}
-kerberos:
-  kdc: ${krb.kdc.host:}
-  realm: ${krb.realm:}
 metadata:
   imageUrl: ${IMAGE_URL:}

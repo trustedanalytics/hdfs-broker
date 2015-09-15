@@ -27,14 +27,6 @@ public class ExternalConfiguration {
     @NotNull
     private String imageUrl;
 
-    @Value("${hdfs.brokerusername}")
-    @NotNull
-    private String brokerUserName;
-
-    @Value("${hdfs.brokeruserpass}")
-    @NotNull
-    private String brokerUserPassword;
-
     @Value("${hdfs.binding.xattr}")
     @NotNull
     private String bindingXattr;
@@ -51,14 +43,6 @@ public class ExternalConfiguration {
     @NotNull
     private String userspaceChroot;
 
-    @Value("${kerberos.kdc}")
-    @NotNull
-    private String kerberosKdc;
-
-    @Value("${kerberos.realm}")
-    @NotNull
-    private String kerberosRealm;
-
     @Value("${cf.servicename}")
     @NotNull
     private String cfServiceName;
@@ -73,14 +57,6 @@ public class ExternalConfiguration {
 
     @Value("${hdfs.provided.params}")
     private String hadoopProvidedParams;
-
-    public String getBrokerUserName() {
-        return brokerUserName;
-    }
-
-    public void setBrokerUserName(String brokerUserName) {
-        this.brokerUserName = brokerUserName;
-    }
 
     public String getBindingXattr() {
         return bindingXattr;
@@ -114,22 +90,6 @@ public class ExternalConfiguration {
         this.userspaceChroot = userspaceChroot;
     }
 
-    public String getKerberosKdc() {
-        return kerberosKdc;
-    }
-
-    public void setKerberosKdc(String kerberosKdc) {
-        this.kerberosKdc = kerberosKdc;
-    }
-
-    public String getKerberosRealm() {
-        return kerberosRealm;
-    }
-
-    public void setKerberosRealm(String kerberosRealm) {
-        this.kerberosRealm = kerberosRealm;
-    }
-
     public String getCfServiceName() {
       return cfServiceName;
     }
@@ -152,14 +112,6 @@ public class ExternalConfiguration {
 
     public void setHadoopProvidedParams(String hadoopProvidedParams) {
      this.hadoopProvidedParams = hadoopProvidedParams;
-    }
-
-    public String getBrokerUserPassword() {
-       return brokerUserPassword;
-    }
-
-    public void setBrokerUserPassword(String brokerUserPassword) {
-       this.brokerUserPassword = brokerUserPassword;
     }
 
     public String getImageUrl() {
