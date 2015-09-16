@@ -12,14 +12,24 @@ Run command for compile and package.:
 mvn clean package
 ```
 
+## Kerberos configuration
+Broker automatically bind to an existing kerberos provide service. This will provide default kerberos configuration, for REALM and KDC host. Before deploy check:
+
+- if kerberos service does not exists in your space, you can create it with command:
+```
+cf cups kerberos-service -p '{ "kdc": "kdc-host", "kpassword": "kerberos-password", "krealm": "kerberos-realm", "kuser": "kerberos-user" }'
+```
+
+- if kerberos-service exists in your space, you can update it with command:
+```
+cf uups kerberos-service -p '{ "kdc": "kdc-host", "kpassword": "kerberos-password", "krealm": "kerberos-realm", "kuser": "kerberos-user" }'
+```
+
 ## Deploy 
 Push broker binary code to cloud foundry (use cf client).:
 ```
 cf push hdfs-broker -p target/hdfs-broker-*.jar -m 512M -i 1 --no-start
 ```
-
-## Kerberos configuration
-Broker should be bind to existing kerberos provided service. This will provide default kerberos configuration, for REALM and KDC host.
 
 ## Configure
 For strict separation of config from code (twelve-factor principle), configuration must be placed in environment variables.
