@@ -77,7 +77,8 @@ public class HdfsConfiguration {
                 getPropertyFromCredentials(PropertyLocator.USER),
                 getPropertyFromCredentials(PropertyLocator.PASSWORD).toCharArray()), hadoopConf);
         LOGGER.info("Creating filesytem with kerberos auth");
-        return FileSystem.get(hadoopConf);
+        return FileSystem.get(new URI(hadoopConf.getRaw(HdfsServiceInstanceBindingService.HADOOP_DEFAULT_FS)),
+                              hadoopConf, getPropertyFromCredentials(PropertyLocator.USER));
     }
 
     /**
@@ -94,6 +95,7 @@ public class HdfsConfiguration {
 
     private String getPropertyFromCredentials(PropertyLocator property) throws IOException{
         return confHelper.getPropertyFromEnv(property)
-                .orElseThrow(() -> new IllegalStateException(property.name() + " not found in VCAP_SERVICES"));
+                .orElseThrow(() -> new IllegalStateException(
+                    property.name() + " not found in VCAP_SERVICES"));
     }
 }
