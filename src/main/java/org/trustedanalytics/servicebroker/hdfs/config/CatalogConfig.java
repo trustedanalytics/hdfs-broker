@@ -43,11 +43,13 @@ public class CatalogConfig {
 
     private List<Plan> getSharedPlans() {
         return Lists.newArrayList(new Plan(configuration.getCfBaseId() + "-shared-plan", "shared",
-                "This is a default hdfs plan.", null, true));
+                        "This is a default hdfs plan.", null, true),
+                new Plan(configuration.getCfBaseId() + "-encrypted-plan", "encrypted",
+                        "This is a encrypted hdfs plan.", null, true));
     }
 
     private Map<String, Object> getServiceDefinitionMetadata() {
-        Map<String,Object> serviceMetadata = new HashMap<>();
+        Map<String, Object> serviceMetadata = new HashMap<>();
 
         serviceMetadata.put(IMAGE_URL, configuration.getImageUrl());
 

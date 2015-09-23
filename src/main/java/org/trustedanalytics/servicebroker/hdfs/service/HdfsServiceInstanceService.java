@@ -15,13 +15,13 @@
  */
 package org.trustedanalytics.servicebroker.hdfs.service;
 
-import org.trustedanalytics.cfbroker.store.hdfs.service.HdfsClient;
-import org.trustedanalytics.cfbroker.store.impl.ForwardingServiceInstanceServiceStore;
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
 import org.cloudfoundry.community.servicebroker.exception.ServiceInstanceExistsException;
 import org.cloudfoundry.community.servicebroker.model.CreateServiceInstanceRequest;
 import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
 import org.cloudfoundry.community.servicebroker.service.ServiceInstanceService;
+import org.trustedanalytics.cfbroker.store.hdfs.service.HdfsClient;
+import org.trustedanalytics.cfbroker.store.impl.ForwardingServiceInstanceServiceStore;
 
 import java.io.IOException;
 
@@ -39,13 +39,18 @@ public class HdfsServiceInstanceService extends ForwardingServiceInstanceService
     public ServiceInstance createServiceInstance(CreateServiceInstanceRequest request)
         throws ServiceInstanceExistsException, ServiceBrokerException {
         ServiceInstance serviceInstance = super.createServiceInstance(request);
-        provisionDirectory(serviceInstance.getServiceInstanceId());
+        provisionDirectory(serviceInstance.getServiceInstanceId(), request.getPlanId());
         return serviceInstance;
     }
 
-    private void provisionDirectory(String serviceInstanceId) throws ServiceBrokerException {
+    private void provisionDirectory(String serviceInstanceId, String plan) throws ServiceBrokerException {
         try {
-            userspaceHdfsClient.createDir(serviceInstanceId);
+            if(plan.contains("-encrypted")){
+                userspaceHdfsClient.createEncryptedDir(serviceInstanceId);
+            }
+            else{
+                userspaceHdfsClient.createDir(serviceInstanceId);
+            }
         } catch (IOException e) {
             throw new ServiceBrokerException(
                 "Unable to provision directory for: " + serviceInstanceId, e);
