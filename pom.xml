@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hdfs-broker</artifactId>
-    <version>0.5.6</version>
+    <version>0.5.7</version>
 
     <parent>
         <groupId>org.trustedanalytics</groupId>
@@ -14,6 +14,10 @@
         <brokerVersion>2.4.2</brokerVersion>
         <brokerTestVersion>2.4.1</brokerTestVersion>
         <start-class>org.trustedanalytics.servicebroker.hdfs.config.Application</start-class>
+        <jacoco-measurement-instructions>0.6069</jacoco-measurement-instructions>
+        <jacoco-measurement-branches>0.2000</jacoco-measurement-branches>
+        <jacoco-measurement-lines>0.5592</jacoco-measurement-lines>
+        <jacoco-measurement-classes>0.6250</jacoco-measurement-classes>
     </properties>
 
     <build>
@@ -40,30 +44,6 @@
                     <source>1.8</source>
                     <target>1.8</target>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.7.4.201502262128</version>
-                <configuration>
-                    <destFile>${basedir}/target/coverage-reports/jacoco-unit.exec</destFile>
-                    <dataFile>${basedir}/target/coverage-reports/jacoco-unit.exec</dataFile>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>jacoco-initialize</id>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>jacoco-site</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>com.mycila</groupId>
