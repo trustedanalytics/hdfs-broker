@@ -16,3 +16,4 @@ applications:
     CF_CATALOG_SERVICENAME: hdfs
     CF_CATALOG_SERVICEID: hdfs
     VERSION: ${version}
+    TAGS: hdfs
