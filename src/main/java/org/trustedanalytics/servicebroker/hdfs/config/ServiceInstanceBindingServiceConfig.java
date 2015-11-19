@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import org.trustedanalytics.cfbroker.store.api.BrokerStore;
 import org.trustedanalytics.cfbroker.store.impl.ServiceInstanceBindingServiceStore;
 import org.trustedanalytics.hadoop.config.*;
+import org.trustedanalytics.hadoop.config.internal.*;
 import org.trustedanalytics.servicebroker.hdfs.service.HdfsServiceInstanceBindingService;
 import org.cloudfoundry.community.servicebroker.model.CreateServiceInstanceBindingRequest;
 import org.cloudfoundry.community.servicebroker.service.ServiceInstanceBindingService;
