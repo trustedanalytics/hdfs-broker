@@ -15,10 +15,10 @@
  */
 package org.trustedanalytics.servicebroker.hdfs.config;
 
-import javax.validation.constraints.NotNull;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+
+import javax.validation.constraints.NotNull;
 
 @Configuration
 public class ExternalConfiguration {
@@ -58,6 +58,10 @@ public class ExternalConfiguration {
     @Value("${hdfs.provided.params}")
     private String hadoopProvidedParams;
 
+    @Value("${hdfs.keytab}")
+    @NotNull
+    private String keytab;
+
     public String getBindingXattr() {
         return bindingXattr;
     }
@@ -91,27 +95,27 @@ public class ExternalConfiguration {
     }
 
     public String getCfServiceName() {
-      return cfServiceName;
+        return cfServiceName;
     }
 
     public void setCfServiceName(String cfServiceName) {
-      this.cfServiceName = cfServiceName;
+        this.cfServiceName = cfServiceName;
     }
 
     public String getCfServiceId() {
-     return cfServiceId;
+        return cfServiceId;
     }
 
     public void setCfServiceId(String cfServiceId) {
-     this.cfServiceId = cfServiceId;
+        this.cfServiceId = cfServiceId;
     }
 
     public String getHadoopProvidedParams() {
-     return hadoopProvidedParams;
+        return hadoopProvidedParams;
     }
 
     public void setHadoopProvidedParams(String hadoopProvidedParams) {
-     this.hadoopProvidedParams = hadoopProvidedParams;
+        this.hadoopProvidedParams = hadoopProvidedParams;
     }
 
     public String getImageUrl() {
@@ -128,5 +132,13 @@ public class ExternalConfiguration {
 
     public void setCfBaseId(String cfBaseId) {
         this.cfBaseId = cfBaseId;
+    }
+
+    public String getKeytab() {
+        return keytab;
+    }
+
+    public void setKeytab(String keytab) {
+        this.keytab = keytab;
     }
 }

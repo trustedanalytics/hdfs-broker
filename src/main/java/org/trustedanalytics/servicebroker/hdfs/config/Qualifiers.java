@@ -15,10 +15,11 @@
  */
 package org.trustedanalytics.servicebroker.hdfs.config;
 
-
 final class Qualifiers {
     public static final String SERVICE_INSTANCE = "serviceInstance";
     public static final String SERVICE_INSTANCE_BINDING = "serviceInstanceBinding";
+    public static final String USER = "user";
+    public static final String SUPER_USER = "superUser";
 
     private Qualifiers() {
 

@@ -16,6 +16,7 @@
 package org.trustedanalytics.servicebroker.hdfs.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.trustedanalytics.servicebroker.hdfs.config.Application;
 import org.trustedanalytics.servicebroker.hdfs.config.ExternalConfiguration;
 import org.trustedanalytics.servicebroker.hdfs.integration.config.HdfsLocalConfiguration;
@@ -54,7 +55,12 @@ public class CreateTest {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
-    private FileSystem fileSystem;
+    @Qualifier("user")
+    private FileSystem userFileSystem;
+
+    @Autowired
+    @Qualifier("superUser")
+    private FileSystem adminFileSystem;
 
     @Autowired
     private ExternalConfiguration conf;
@@ -114,7 +120,7 @@ public class CreateTest {
     }
 
     private boolean userDirectoryProvisioned(String serviceInstanceId) throws IOException {
-        return fileSystem.exists(new Path(getUserDirectoryPath(serviceInstanceId)));
+        return userFileSystem.exists(new Path(getUserDirectoryPath(serviceInstanceId)));
     }
 
     private String getUserDirectoryPath(String serviceInstanceId) {
@@ -122,7 +128,7 @@ public class CreateTest {
     }
 
     private ServiceInstance getSavedInstanceFromFileSystem(String id) throws IOException {
-        byte[] savedBytes = fileSystem.getXAttrs(new Path(conf.getMetadataChroot() + "/" + id))
+        byte[] savedBytes = userFileSystem.getXAttrs(new Path(conf.getMetadataChroot() + "/" + id))
             .get(conf.getInstanceXattr());
         return mapper.readValue(savedBytes, ServiceInstance.class);
     }
@@ -130,7 +136,7 @@ public class CreateTest {
     private CreateServiceInstanceBindingRequest getSavedBindReqFromFileSystem(String serviceId,
         String bindingId) throws IOException {
 
-        byte[] savedBytes = fileSystem
+        byte[] savedBytes = userFileSystem
             .getXAttrs(new Path(conf.getMetadataChroot() + "/" + serviceId + "/" + bindingId))
             .get(conf.getBindingXattr());
         return mapper.readValue(savedBytes, CreateServiceInstanceBindingRequest.class);

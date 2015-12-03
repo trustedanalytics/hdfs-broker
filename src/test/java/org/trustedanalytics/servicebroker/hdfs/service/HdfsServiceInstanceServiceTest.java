@@ -15,7 +15,8 @@
  */
 package org.trustedanalytics.servicebroker.hdfs.service;
 
-import org.trustedanalytics.cfbroker.store.hdfs.service.HdfsClient;
+import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
+import org.cloudfoundry.community.servicebroker.exception.ServiceInstanceExistsException;
 import org.cloudfoundry.community.servicebroker.model.CreateServiceInstanceRequest;
 import org.cloudfoundry.community.servicebroker.model.ServiceDefinition;
 import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
@@ -27,14 +28,15 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.trustedanalytics.cfbroker.store.hdfs.service.HdfsClient;
+
+import java.io.IOException;
+import java.util.Collections;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import java.util.Collections;
-
-import static org.mockito.Matchers.any;
 
 
 @RunWith(MockitoJUnitRunner.class)
@@ -49,32 +51,50 @@ public class HdfsServiceInstanceServiceTest {
     @Mock
     private HdfsClient userspaceHdfsClient;
 
+    @Mock
+    private HdfsClient adminHdfsClient;
+
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
     @Before
     public void before() {
-        service = new HdfsServiceInstanceService(instanceService, userspaceHdfsClient);
-
+        service = new HdfsServiceInstanceService(instanceService, userspaceHdfsClient, adminHdfsClient);
     }
 
     @Test
-    public void testCreateServiceInstance_success_delegateCallAndForwardBackReturnedServiceInstance()
+    public void testCreateServiceInstance_successWithSharedPlan_delegateCallAndForwardBackReturnedServiceInstance()
             throws Exception {
-        ServiceInstance instance = getServiceInstance("id");
+        ServiceInstance instance = getServiceInstance("id", "plan-shared");
+        ServiceInstance returnedInstance = createServiceInstanceWithDir(instance);
+        assertThat(returnedInstance, equalTo(instance));
+    }
+
+    @Test
+    public void testCreateServiceInstance_successWithEncryptedPlan_delegateCallAndForwardBackReturnedServiceInstance()
+            throws Exception {
+        ServiceInstance instance = getServiceInstance("id", "plan-encrypted");
+        ServiceInstance returnedInstance = createServiceInstanceWithDir(instance);
+        verify(adminHdfsClient).createEncryptedZone("id");
+        assertThat(returnedInstance, equalTo(instance));
+    }
+
+    private ServiceInstance createServiceInstanceWithDir(ServiceInstance instance)
+            throws ServiceBrokerException, ServiceInstanceExistsException, IOException {
         CreateServiceInstanceRequest request = new CreateServiceInstanceRequest(
                 getServiceDefinition().getId(), instance.getPlanId(), instance.getOrganizationGuid(), instance.getSpaceGuid()).
                 withServiceInstanceId(instance.getServiceInstanceId()).withServiceDefinition(getServiceDefinition());
+
         when(instanceService.createServiceInstance(request)).thenReturn(instance);
         ServiceInstance returnedInstance = service.createServiceInstance(request);
         verify(instanceService).createServiceInstance(request);
         verify(userspaceHdfsClient).createDir("id");
-        assertThat(returnedInstance, equalTo(instance));
+        return returnedInstance;
     }
 
-    private ServiceInstance getServiceInstance(String id) {
+    private ServiceInstance getServiceInstance(String id, String plan) {
         return new ServiceInstance(
-                new CreateServiceInstanceRequest(getServiceDefinition().getId(), "planId", "organizationGuid", "spaceGuid")
+                new CreateServiceInstanceRequest(getServiceDefinition().getId(), plan, "organizationGuid", "spaceGuid")
                         .withServiceInstanceId(id));
     }
 
@@ -82,8 +102,6 @@ public class HdfsServiceInstanceServiceTest {
     private ServiceDefinition getServiceDefinition() {
         return new ServiceDefinition("def", "name", "desc", true, Collections.emptyList());
     }
-
-
 
 
 }

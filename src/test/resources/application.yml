@@ -9,6 +9,7 @@ hdfs:
   metadata.chroot: /tmp/cf/broker/metadata
   provided.params: "{\"HADOOP_CONFIG_KEY\": {\"fs.defaultFS\": \"fake\"}}"
   userspace.chroot: /tmp/cf/broker/userspace
+  keytab: fake
 cf:
   servicename: fake
   serviceid: fake

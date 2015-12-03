@@ -12,6 +12,7 @@ hdfs:
   #path on hdfs where broker creates dirs for user apps
   userspace.chroot: ${broker.path:/cf/broker}/userspace
   provided.params: ${hadoop.provided.params:{}}
+  keytab: ${hdfs.keytab:{}}
 cf:
   #name of service in cloud foundry catalog
   servicename: ${cf.catalog.servicename:hdfs}

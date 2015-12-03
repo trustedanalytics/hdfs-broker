@@ -15,21 +15,19 @@
  */
 package org.trustedanalytics.servicebroker.hdfs.config;
 
+import org.apache.hadoop.fs.FileSystem;
+import org.cloudfoundry.community.servicebroker.model.CreateServiceInstanceBindingRequest;
+import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.trustedanalytics.cfbroker.store.api.BrokerStore;
 import org.trustedanalytics.cfbroker.store.hdfs.service.ChrootedHdfsClient;
 import org.trustedanalytics.cfbroker.store.hdfs.service.HdfsClient;
 import org.trustedanalytics.cfbroker.store.hdfs.service.XAttrsHdfsStore;
 import org.trustedanalytics.cfbroker.store.serialization.RepositoryDeserializer;
 import org.trustedanalytics.cfbroker.store.serialization.RepositorySerializer;
-import org.apache.hadoop.fs.FileSystem;
-import org.cloudfoundry.community.servicebroker.model.CreateServiceInstanceBindingRequest;
-import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 
@@ -40,6 +38,7 @@ public class BrokerStoreConfig {
     private ExternalConfiguration configuration;
 
     @Autowired
+    @Qualifier(Qualifiers.USER)
     private FileSystem fs;
 
     @Autowired

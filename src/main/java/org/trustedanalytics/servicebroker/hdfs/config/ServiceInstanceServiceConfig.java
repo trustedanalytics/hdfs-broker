@@ -42,7 +42,12 @@ public class ServiceInstanceServiceConfig {
     private ExternalConfiguration configuration;
 
     @Autowired
+    @Qualifier(Qualifiers.USER)
     private FileSystem fs;
+
+    @Autowired
+    @Qualifier(Qualifiers.SUPER_USER)
+    private FileSystem adminFs;
 
     @Autowired
     @Qualifier(value = Qualifiers.SERVICE_INSTANCE)
@@ -54,6 +59,7 @@ public class ServiceInstanceServiceConfig {
 
         LOGGER.info("ChRoot : " + configuration.getUserspaceChroot());
         HdfsClient hdfsClient = new ChrootedHdfsClient(fs, configuration.getUserspaceChroot());
-        return new HdfsServiceInstanceService(new ServiceInstanceServiceStore(store), hdfsClient);
+        HdfsClient hdfsAdminClient = new ChrootedHdfsClient(adminFs, configuration.getUserspaceChroot());
+        return new HdfsServiceInstanceService(new ServiceInstanceServiceStore(store), hdfsClient, hdfsAdminClient);
     }
 }

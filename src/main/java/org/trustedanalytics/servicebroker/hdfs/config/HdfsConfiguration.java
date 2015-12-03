@@ -15,25 +15,30 @@
  */
 package org.trustedanalytics.servicebroker.hdfs.config;
 
-import org.trustedanalytics.hadoop.config.ConfigurationHelper;
-import org.trustedanalytics.hadoop.config.ConfigurationHelperImpl;
-import org.trustedanalytics.hadoop.config.PropertyLocator;
-import org.trustedanalytics.hadoop.kerberos.KrbLoginManager;
-import org.trustedanalytics.hadoop.kerberos.KrbLoginManagerFactory;
-import org.trustedanalytics.servicebroker.hdfs.service.HdfsServiceInstanceBindingService;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
+import org.trustedanalytics.hadoop.config.ConfigurationHelper;
+import org.trustedanalytics.hadoop.config.ConfigurationHelperImpl;
+import org.trustedanalytics.hadoop.config.ConfigurationLocator;
+import org.trustedanalytics.hadoop.config.PropertyLocator;
+import org.trustedanalytics.hadoop.kerberos.KrbLoginManager;
+import org.trustedanalytics.hadoop.kerberos.KrbLoginManagerFactory;
+import org.trustedanalytics.servicebroker.hdfs.service.HdfsServiceInstanceBindingService;
+import sun.security.krb5.KrbException;
 
+import javax.security.auth.login.LoginException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-
-import javax.security.auth.login.LoginException;
+import java.util.Map;
 
 @Profile(Profiles.CLOUD)
 @org.springframework.context.annotation.Configuration
@@ -45,26 +50,38 @@ public class HdfsConfiguration {
 
     private static final String AUTHENTICATION_METHOD_PROPERTY = "hadoop.security.authentication";
 
+    private static final String HDFS_PRINCIPAL = "hdfs";
+
+    private static final String KEYTAB_FILE_PATH = "/tmp/superuser.keytab";
+
     private ConfigurationHelper confHelper = ConfigurationHelperImpl.getInstance();
 
     @Autowired
     private ExternalConfiguration configuration;
 
-    @Autowired
-    private Configuration hadoopConf;
-
     @Bean
-    public FileSystem getFileSystem() throws InterruptedException,
+    @Qualifier(Qualifiers.USER)
+    public FileSystem getUserFileSystem() throws InterruptedException,
             URISyntaxException, LoginException, IOException {
-
-        if(AUTHENTICATION_METHOD.equals(hadoopConf.get(AUTHENTICATION_METHOD_PROPERTY))) {
-            return getSecureFileSystem();
+        if (isKerberosEnabled()) {
+            return getUserSecureFileSystem();
         } else {
             return getInsecureFileSystem();
         }
     }
 
-    private FileSystem getSecureFileSystem() throws InterruptedException,
+    @Bean
+    @Qualifier(Qualifiers.SUPER_USER)
+    public FileSystem getAdminFileSystem() throws InterruptedException,
+            URISyntaxException, LoginException, IOException, KrbException {
+        if (isKerberosEnabled()) {
+            return getAdminSecureFileSystem();
+        } else {
+            return getInsecureFileSystem();
+        }
+    }
+
+    private FileSystem getUserSecureFileSystem() throws InterruptedException,
             URISyntaxException, LoginException, IOException {
         LOGGER.info("Trying kerberos auth");
 
@@ -73,12 +90,31 @@ public class HdfsConfiguration {
                         getPropertyFromCredentials(PropertyLocator.KRB_KDC),
                         getPropertyFromCredentials(PropertyLocator.KRB_REALM));
 
+        Configuration hadoopConf = getHadoopConfiguration();
         loginManager.loginInHadoop(loginManager.loginWithCredentials(
                 getPropertyFromCredentials(PropertyLocator.USER),
                 getPropertyFromCredentials(PropertyLocator.PASSWORD).toCharArray()), hadoopConf);
-        LOGGER.info("Creating filesytem with kerberos auth");
-        return FileSystem.get(new URI(hadoopConf.getRaw(HdfsServiceInstanceBindingService.HADOOP_DEFAULT_FS)),
-                              hadoopConf, getPropertyFromCredentials(PropertyLocator.USER));
+        return getFileSystemForUser(hadoopConf, getPropertyFromCredentials(PropertyLocator.USER));
+    }
+
+
+    private FileSystem getAdminSecureFileSystem() throws InterruptedException,
+            URISyntaxException, LoginException, IOException, KrbException {
+        LOGGER.info("Trying kerberos auth for admin");
+
+        byte[] keytabFile = Base64.decodeBase64(configuration.getKeytab());
+        try (FileOutputStream fileOutputStream =
+                     new FileOutputStream(KEYTAB_FILE_PATH)) {
+            fileOutputStream.write(keytabFile);
+        }
+        KrbLoginManager loginManager =
+                KrbLoginManagerFactory.getInstance().getKrbLoginManagerInstance(
+                        getPropertyFromCredentials(PropertyLocator.KRB_KDC),
+                        getPropertyFromCredentials(PropertyLocator.KRB_REALM));
+
+        Configuration hadoopConf = getHadoopConfiguration();
+        loginManager.loginInHadoop(loginManager.loginWithKeyTab(HDFS_PRINCIPAL, KEYTAB_FILE_PATH), hadoopConf);
+        return getFileSystemForUser(hadoopConf, HDFS_PRINCIPAL);
     }
 
     /**
@@ -88,14 +124,35 @@ public class HdfsConfiguration {
     private FileSystem getInsecureFileSystem() throws InterruptedException,
             URISyntaxException, LoginException, IOException {
         LOGGER.info("Creating filesytem without kerberos auth");
-        return FileSystem.get(
-            new URI(hadoopConf.getRaw(HdfsServiceInstanceBindingService.HADOOP_DEFAULT_FS)),
-            hadoopConf, getPropertyFromCredentials(PropertyLocator.USER));
+
+        Configuration hadoopConf = getHadoopConfiguration();
+        return getFileSystemForUser(hadoopConf, getPropertyFromCredentials(PropertyLocator.USER));
     }
 
-    private String getPropertyFromCredentials(PropertyLocator property) throws IOException{
+    private FileSystem getFileSystemForUser(Configuration config, String user)
+            throws URISyntaxException, IOException, InterruptedException {
+        LOGGER.info("Creating filesytem with kerberos auth for user: " + user);
+        return FileSystem.get(new URI(config.getRaw(HdfsServiceInstanceBindingService.HADOOP_DEFAULT_FS)),
+                config, user);
+    }
+
+    private boolean isKerberosEnabled() throws LoginException, IOException {
+        return AUTHENTICATION_METHOD.equals(getHadoopConfiguration().get(AUTHENTICATION_METHOD_PROPERTY));
+    }
+
+    private String getPropertyFromCredentials(PropertyLocator property) throws IOException {
         return confHelper.getPropertyFromEnv(property)
                 .orElseThrow(() -> new IllegalStateException(
-                    property.name() + " not found in VCAP_SERVICES"));
+                        property.name() + " not found in VCAP_SERVICES"));
+    }
+
+    private Configuration getHadoopConfiguration() throws LoginException, IOException {
+        Configuration hadoopConf = new Configuration(false);
+        ConfigurationHelper helper = ConfigurationHelperImpl.getInstance();
+        Map<String, String> configParams = helper.getConfigurationFromJson(
+                configuration.getHadoopProvidedParams(),
+                ConfigurationLocator.HADOOP);
+        configParams.forEach(hadoopConf::set);
+        return hadoopConf;
     }
 }

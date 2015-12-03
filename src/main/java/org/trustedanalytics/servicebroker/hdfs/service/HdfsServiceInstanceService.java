@@ -29,32 +29,41 @@ public class HdfsServiceInstanceService extends ForwardingServiceInstanceService
 
     private final HdfsClient userspaceHdfsClient;
 
+    private final HdfsClient adminHdfsClient;
+
     public HdfsServiceInstanceService(ServiceInstanceService instanceService,
-        HdfsClient userspaceHdfsClient) {
+                                      HdfsClient userspaceHdfsClient, HdfsClient adminHdfsClient) {
         super(instanceService);
         this.userspaceHdfsClient = userspaceHdfsClient;
+        this.adminHdfsClient = adminHdfsClient;
     }
 
     @Override
     public ServiceInstance createServiceInstance(CreateServiceInstanceRequest request)
-        throws ServiceInstanceExistsException, ServiceBrokerException {
+            throws ServiceInstanceExistsException, ServiceBrokerException {
         ServiceInstance serviceInstance = super.createServiceInstance(request);
-        provisionDirectory(serviceInstance.getServiceInstanceId(), request.getPlanId());
+        provisionDirectory(serviceInstance.getServiceInstanceId());
+        if (request.getPlanId().contains("-encrypted")) {
+            createEncryptedZone(serviceInstance.getServiceInstanceId());
+        }
         return serviceInstance;
     }
 
-    private void provisionDirectory(String serviceInstanceId, String plan) throws ServiceBrokerException {
+    private void provisionDirectory(String serviceInstanceId) throws ServiceBrokerException {
         try {
-            if(plan.contains("-encrypted")){
-                userspaceHdfsClient.createEncryptedDir(serviceInstanceId);
-            }
-            else{
-                userspaceHdfsClient.createDir(serviceInstanceId);
-            }
+            userspaceHdfsClient.createDir(serviceInstanceId);
         } catch (IOException e) {
             throw new ServiceBrokerException(
-                "Unable to provision directory for: " + serviceInstanceId, e);
+                    "Unable to provision directory for: " + serviceInstanceId, e);
         }
     }
 
+    private void createEncryptedZone(String serviceInstanceId) throws ServiceBrokerException {
+        try {
+            adminHdfsClient.createEncryptedZone(serviceInstanceId);
+        } catch (IOException e) {
+            throw new ServiceBrokerException(
+                    "Unable to provision encrypted directory for: " + serviceInstanceId, e);
+        }
+    }
 }

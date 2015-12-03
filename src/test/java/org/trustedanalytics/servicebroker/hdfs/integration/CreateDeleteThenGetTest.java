@@ -15,27 +15,24 @@
  */
 package org.trustedanalytics.servicebroker.hdfs.integration;
 
-import org.trustedanalytics.servicebroker.hdfs.config.Application;
-import org.trustedanalytics.servicebroker.hdfs.config.ExternalConfiguration;
-import org.trustedanalytics.servicebroker.hdfs.integration.config.HdfsLocalConfiguration;
-import org.trustedanalytics.servicebroker.hdfs.integration.utils.CfModelsFactory;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.cloudfoundry.community.servicebroker.model.CreateServiceInstanceBindingRequest;
-import org.cloudfoundry.community.servicebroker.model.CreateServiceInstanceRequest;
-import org.cloudfoundry.community.servicebroker.model.DeleteServiceInstanceBindingRequest;
-import org.cloudfoundry.community.servicebroker.model.DeleteServiceInstanceRequest;
-import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
+import org.cloudfoundry.community.servicebroker.model.*;
 import org.cloudfoundry.community.servicebroker.service.ServiceInstanceBindingService;
 import org.cloudfoundry.community.servicebroker.service.ServiceInstanceService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.trustedanalytics.servicebroker.hdfs.config.Application;
+import org.trustedanalytics.servicebroker.hdfs.config.ExternalConfiguration;
+import org.trustedanalytics.servicebroker.hdfs.integration.config.HdfsLocalConfiguration;
+import org.trustedanalytics.servicebroker.hdfs.integration.utils.CfModelsFactory;
 
 import java.io.FileNotFoundException;
 
@@ -51,7 +48,12 @@ import static org.hamcrest.core.Is.is;
 public class CreateDeleteThenGetTest {
 
     @Autowired
-    private FileSystem fileSystem;
+    @Qualifier("user")
+    private FileSystem userFileSystem;
+
+    @Autowired
+    @Qualifier("superUser")
+    private FileSystem adminFileSystem;
 
     @Autowired
     private ExternalConfiguration conf;
@@ -111,7 +113,7 @@ public class CreateDeleteThenGetTest {
         bindingBean.deleteServiceInstanceBinding(deleteRequest);
 
         //assert
-        fileSystem.getXAttrs(
+        userFileSystem.getXAttrs(
             new Path(conf.getMetadataChroot() + "/" + serviceInstanceId + "/" + bindingId));
     }
 }
