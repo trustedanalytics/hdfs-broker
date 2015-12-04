@@ -66,7 +66,7 @@ public class HdfsConfiguration {
         if (isKerberosEnabled()) {
             return getUserSecureFileSystem();
         } else {
-            return getInsecureFileSystem();
+            return getInsecureFileSystem(getPropertyFromCredentials(PropertyLocator.USER));
         }
     }
 
@@ -77,7 +77,7 @@ public class HdfsConfiguration {
         if (isKerberosEnabled()) {
             return getAdminSecureFileSystem();
         } else {
-            return getInsecureFileSystem();
+            return getInsecureFileSystem(HDFS_PRINCIPAL);
         }
     }
 
@@ -121,12 +121,12 @@ public class HdfsConfiguration {
      * TODO: This method instead of configuration.getBrokerUserName() should have something like :
      * OAuthTicket.getUserName()
      */
-    private FileSystem getInsecureFileSystem() throws InterruptedException,
+    private FileSystem getInsecureFileSystem(String user) throws InterruptedException,
             URISyntaxException, LoginException, IOException {
         LOGGER.info("Creating filesytem without kerberos auth");
 
         Configuration hadoopConf = getHadoopConfiguration();
-        return getFileSystemForUser(hadoopConf, getPropertyFromCredentials(PropertyLocator.USER));
+        return getFileSystemForUser(hadoopConf, user);
     }
 
     private FileSystem getFileSystemForUser(Configuration config, String user)
