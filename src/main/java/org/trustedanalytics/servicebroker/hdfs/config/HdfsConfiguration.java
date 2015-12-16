@@ -24,21 +24,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
+import org.trustedanalytics.cfbroker.config.ConfigurationException;
 import org.trustedanalytics.hadoop.config.ConfigurationHelper;
 import org.trustedanalytics.hadoop.config.ConfigurationHelperImpl;
-import org.trustedanalytics.hadoop.config.ConfigurationLocator;
 import org.trustedanalytics.hadoop.config.PropertyLocator;
 import org.trustedanalytics.hadoop.kerberos.KrbLoginManager;
 import org.trustedanalytics.hadoop.kerberos.KrbLoginManagerFactory;
 import org.trustedanalytics.servicebroker.hdfs.service.HdfsServiceInstanceBindingService;
+import org.trustedanalytics.cfbroker.config.HadoopZipConfiguration;
 import sun.security.krb5.KrbException;
 
 import javax.security.auth.login.LoginException;
+import javax.xml.xpath.XPathExpressionException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Map;
 
 @Profile(Profiles.CLOUD)
 @org.springframework.context.annotation.Configuration
@@ -62,7 +63,7 @@ public class HdfsConfiguration {
     @Bean
     @Qualifier(Qualifiers.USER)
     public FileSystem getUserFileSystem() throws InterruptedException,
-            URISyntaxException, LoginException, IOException {
+        URISyntaxException, LoginException, IOException {
         if (isKerberosEnabled()) {
             return getUserSecureFileSystem();
         } else {
@@ -73,7 +74,7 @@ public class HdfsConfiguration {
     @Bean
     @Qualifier(Qualifiers.SUPER_USER)
     public FileSystem getAdminFileSystem() throws InterruptedException,
-            URISyntaxException, LoginException, IOException, KrbException {
+        URISyntaxException, LoginException, IOException, KrbException {
         if (isKerberosEnabled()) {
             return getAdminSecureFileSystem();
         } else {
@@ -82,7 +83,7 @@ public class HdfsConfiguration {
     }
 
     private FileSystem getUserSecureFileSystem() throws InterruptedException,
-            URISyntaxException, LoginException, IOException {
+        URISyntaxException, LoginException, IOException {
         LOGGER.info("Trying kerberos auth");
 
         KrbLoginManager loginManager =
@@ -99,7 +100,7 @@ public class HdfsConfiguration {
 
 
     private FileSystem getAdminSecureFileSystem() throws InterruptedException,
-            URISyntaxException, LoginException, IOException, KrbException {
+        URISyntaxException, LoginException, IOException, KrbException {
         LOGGER.info("Trying kerberos auth for admin");
 
         byte[] keytabFile = Base64.decodeBase64(configuration.getKeytab());
@@ -122,7 +123,7 @@ public class HdfsConfiguration {
      * OAuthTicket.getUserName()
      */
     private FileSystem getInsecureFileSystem(String user) throws InterruptedException,
-            URISyntaxException, LoginException, IOException {
+        URISyntaxException, LoginException, IOException {
         LOGGER.info("Creating filesytem without kerberos auth");
 
         Configuration hadoopConf = getHadoopConfiguration();
@@ -146,13 +147,8 @@ public class HdfsConfiguration {
                         property.name() + " not found in VCAP_SERVICES"));
     }
 
-    private Configuration getHadoopConfiguration() throws LoginException, IOException {
-        Configuration hadoopConf = new Configuration(false);
-        ConfigurationHelper helper = ConfigurationHelperImpl.getInstance();
-        Map<String, String> configParams = helper.getConfigurationFromJson(
-                configuration.getHadoopProvidedParams(),
-                ConfigurationLocator.HADOOP);
-        configParams.forEach(hadoopConf::set);
-        return hadoopConf;
+    private Configuration getHadoopConfiguration() throws LoginException, IOException, ConfigurationException {
+        return HadoopZipConfiguration.createHadoopZipConfiguration(
+            configuration.getHdfsProvidedZip()).getAsHadoopConfiguration();
     }
 }

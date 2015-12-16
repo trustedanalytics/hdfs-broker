@@ -8,7 +8,7 @@ applications:
   services:
   - kerberos-service
   env:
-    HADOOP_PROVIDED_PARAMS: "placeholder"
+    HADOOP_PROVIDED_ZIP: "placeholder"
     BROKER_PATH: "placeholder"
     USER_PASSWORD: "placeholder"
     HDFS_KEYTAB: "placeholder"

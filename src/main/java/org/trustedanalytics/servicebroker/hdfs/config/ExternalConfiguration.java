@@ -55,8 +55,8 @@ public class ExternalConfiguration {
     @NotNull
     private String cfBaseId;
 
-    @Value("${hdfs.provided.params}")
-    private String hadoopProvidedParams;
+    @Value("${hdfs.provided.zip}")
+    private String hdfsProvidedZip;
 
     @Value("${hdfs.keytab}")
     @NotNull
@@ -110,14 +110,6 @@ public class ExternalConfiguration {
         this.cfServiceId = cfServiceId;
     }
 
-    public String getHadoopProvidedParams() {
-        return hadoopProvidedParams;
-    }
-
-    public void setHadoopProvidedParams(String hadoopProvidedParams) {
-        this.hadoopProvidedParams = hadoopProvidedParams;
-    }
-
     public String getImageUrl() {
         return imageUrl;
     }
@@ -141,4 +133,13 @@ public class ExternalConfiguration {
     public void setKeytab(String keytab) {
         this.keytab = keytab;
     }
+
+    public String getHdfsProvidedZip() {
+        return hdfsProvidedZip;
+    }
+
+    public void setHdfsProvidedZip(String hdfsProvidedZip) {
+        this.hdfsProvidedZip = hdfsProvidedZip;
+    }
+
 }
