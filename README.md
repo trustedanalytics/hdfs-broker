@@ -46,7 +46,7 @@ Broker configuration params list (environment properties):
   * BROKER_PATH - path where broker related folders and data will be located on HDFS (default: /cf/broker). **Don't put / at the end.** After setting BROKER_PATH to ```/example/broker``` hdfs-broker will be configured to store service instances and bindings metadata at ```/example/broker/metadata```, and to provision directories for user's applications at ```/example/broker/userspace```.
   * CF_CATALOG_SERVICENAME - service name in cloud foundry catalog (default: hdfs)
   * CF_CATALOG_SERVICEID - service id in cloud foundry catalog (default: hdfs)
-  * HADOOP_PROVIDED_PARAMS - list of hadoop configuration parameters exposed by service (json format, default: {})
+  * HADOOP_PROVIDED_ZIP - list of hadoop configuration parameters exposed by service (json format, default: {})
 
 ### Injection of HDFS client configuration
 HDFS client configuration must be set via HADOOP_PROVIDED_ZIP environment variable. Hadoop configuration has to be zip of directory containing hdfs configuration (*-site.xml files).
