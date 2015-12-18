@@ -49,39 +49,16 @@ Broker configuration params list (environment properties):
   * HADOOP_PROVIDED_PARAMS - list of hadoop configuration parameters exposed by service (json format, default: {})
 
 ### Injection of HDFS client configuration
-HDFS client configuration must be set via HADOOP_PROVIDED_PARAMS environment variable. List of hadoop configuration has to be proper json form:
+HDFS client configuration must be set via HADOOP_PROVIDED_ZIP environment variable. Hadoop configuration has to be zip of directory containing hdfs configuration (*-site.xml files).
 
-```json
-    {"HADOOP_CONFIG_KEY":
-        {
-            "property1.name":"property1.value",
-            "property2.name":"property2.value",
-            ...
-        }
-    }
-
+You can downlad it directly from CDH manager:
 ```
+wget http://<cloudera_manager_host_name>:7180/cmf/services/3/client-config
+```
+
 You can prepare this configuration manually and use cf client,  
-
 ```
-cf se hdfs-broker HADOOP_PROVIDED_PARAMS "{\"HADOOP_CONFIG_KEY\": {\"fs.defaultFS\":
-\"hdfs://ip-10-10-9-164.us-west-2.compute.internal:8020\",\"hadoop.security.authentication\": \"simple\",\"hadoop.security.authorization\":\"false\"}}"
-```
-what is rather annoying. To facilitate the HADOOP_PROVIDED_PARAMS settings, you can use **import_hadoop_conf.sh** script available in admin tool kit https://github.com/trustedanalytics/hadoop-admin-tools. There are several ways to use of this util:
-
-Getting hadoop configuration directly from CDH manager.
-```
-./import_hadoop_conf.sh -cu http://<cloudera_manager_host_name>:7180/cmf/services/3/client-config | xargs -0 cf se hdfs-broker HADOOP_PROVIDED_PARAMS
-```
-
-Getting hadoop configuration from local archive.
-```
-./import_hadoop_conf.sh -cu file://path/client-config.zip | xargs -0 cf se hdfs-broker HADOOP_PROVIDED_PARAMS
-```
-
-Getting hadoop configuration from stdin.
-```
-cat /path/client-config.zip | ./import_hadoop_conf.sh | xargs -0 cf se hdfs-broker HADOOP_PROVIDED_PARAMS
+cf se hdfs-broker HADOOP_PROVIDED_ZIP `cat hdfs-clientconfig.zip | base64 | tr -d '\n'`
 ```
 
 ## Start  service broker application
@@ -125,6 +102,10 @@ and look for :
       "fs.defaultFS": "hdfs://ip-10-10-9-164.us-west-2.compute.internal:8020",
       "hadoop.security.authentication": "simple",
       "hadoop.security.authorization": "false"
+     },
+     "HADOOP_CONFIG_ZIP": {
+      "description": "This is the encoded zip file of hadoop-configuration",
+      "encoded_zip": "<base64 of configuration>"
      },
      "fs.defaultFS": "hdfs://ip-10-10-9-164.us-west-2.compute.internal:8020",
      "kerberos": {
