@@ -31,11 +31,11 @@ import java.util.Map;
 
 public class HdfsServiceInstanceBindingService extends ForwardingServiceInstanceBindingServiceStore {
 
-    public final static String HADOOP_DEFAULT_FS = "fs.defaultFS";
-
-    private final Map<String, Object> credentials;
+    public static final String HADOOP_DEFAULT_FS = "fs.defaultFS";
 
     private ExternalConfiguration configuration;
+
+    private final Map<String, Object> credentials;
 
     public HdfsServiceInstanceBindingService(ServiceInstanceBindingService instanceBindingService,
                                              Map<String, Object> credentials,
