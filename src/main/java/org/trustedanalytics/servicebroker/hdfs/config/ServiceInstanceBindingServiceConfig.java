@@ -18,6 +18,7 @@ package org.trustedanalytics.servicebroker.hdfs.config;
 import com.google.common.collect.ImmutableMap;
 import org.cloudfoundry.community.servicebroker.model.CreateServiceInstanceBindingRequest;
 import org.cloudfoundry.community.servicebroker.service.ServiceInstanceBindingService;
+import org.cloudfoundry.community.servicebroker.service.ServiceInstanceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -27,6 +28,7 @@ import org.trustedanalytics.cfbroker.config.HadoopZipConfiguration;
 import org.trustedanalytics.cfbroker.store.api.BrokerStore;
 import org.trustedanalytics.cfbroker.store.impl.ServiceInstanceBindingServiceStore;
 import org.trustedanalytics.servicebroker.hdfs.service.HdfsServiceInstanceBindingService;
+import org.trustedanalytics.servicebroker.hdfs.service.HdfsServiceInstanceService;
 
 import javax.security.auth.login.LoginException;
 import javax.xml.xpath.XPathExpressionException;
@@ -44,11 +46,11 @@ public class ServiceInstanceBindingServiceConfig {
     private BrokerStore<CreateServiceInstanceBindingRequest> store;
 
     @Bean
-    public ServiceInstanceBindingService getServiceInstanceBindingService()
+    public ServiceInstanceBindingService getServiceInstanceBindingService(ServiceInstanceService serviceInstanceService)
         throws IOException, LoginException, XPathExpressionException {
 
-        return new HdfsServiceInstanceBindingService(
-                new ServiceInstanceBindingServiceStore(store), getCredentials(), configuration);
+        return new HdfsServiceInstanceBindingService(new ServiceInstanceBindingServiceStore(store), getCredentials(),
+                serviceInstanceService, configuration.getUserspaceChroot());
     }
 
     private Map<String, Object> getCredentials() throws IOException, ConfigurationException {

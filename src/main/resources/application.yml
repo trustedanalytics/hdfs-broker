@@ -8,11 +8,12 @@ hdfs:
   #name of extended attribute holding information about broker instance
   instance.xattr: user.instance
   #path on hdfs where service instance and service binding metadata are stored
-  metadata.chroot: ${broker.path:/cf/broker}/metadata
+  metadata.chroot: ${broker.metadata.path:${broker.path}/metadata}
   #path on hdfs where broker creates dirs for user apps
-  userspace.chroot: ${broker.path:/cf/broker}/userspace
+  userspace.chroot: ${broker.userspace.path:/org/%{organization}/brokers/userspace/%{instance}}
+  #path on hdfs where broker creates dirs for multitenant apps
   provided.zip: ${hadoop.provided.zip:{}}
-  keytab: ${hdfs.keytab:{}}
+  keytab:
 cf:
   #name of service in cloud foundry catalog
   servicename: ${cf.catalog.servicename:hdfs}

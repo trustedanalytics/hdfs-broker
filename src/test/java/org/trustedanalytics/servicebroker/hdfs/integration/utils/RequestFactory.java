@@ -16,22 +16,20 @@
 package org.trustedanalytics.servicebroker.hdfs.integration.utils;
 
 import org.cloudfoundry.community.servicebroker.model.CreateServiceInstanceRequest;
-import org.cloudfoundry.community.servicebroker.model.ServiceDefinition;
 import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
 
-import java.util.Collections;
-import java.util.UUID;
+public class RequestFactory {
 
-public class CfModelsFactory {
-    public static ServiceInstance getServiceInstance(String id) {
-        String organizationId = UUID.randomUUID().toString();
-        String spaceId = UUID.randomUUID().toString();
-        return new ServiceInstance(
-            new CreateServiceInstanceRequest(getServiceDefinition().getId(), "planId",
-                    organizationId, spaceId).withServiceInstanceId(id));
+    private RequestFactory() {
     }
 
-    public static ServiceDefinition getServiceDefinition() {
-        return new ServiceDefinition("def", "name", "desc", true, Collections.emptyList());
+    public static CreateServiceInstanceRequest getCreateServiceInstanceRequest(ServiceInstance instance) {
+        return new CreateServiceInstanceRequest(
+                CfModelsFactory.getServiceDefinition().getId(),
+                instance.getPlanId(),
+                instance.getOrganizationGuid(),
+                instance.getSpaceGuid()).withServiceInstanceId(
+                instance.getServiceInstanceId()).withServiceDefinition(
+                CfModelsFactory.getServiceDefinition());
     }
 }

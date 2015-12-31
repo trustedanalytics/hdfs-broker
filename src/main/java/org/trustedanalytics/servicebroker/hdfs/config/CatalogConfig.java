@@ -42,10 +42,14 @@ public class CatalogConfig {
     }
 
     private List<Plan> getSharedPlans() {
-        return Lists.newArrayList(new Plan(configuration.getCfBaseId() + "-shared-plan", "shared",
+        return Lists.newArrayList(
+                new Plan(configuration.getCfBaseId() + "-shared-plan", "shared",
                         "This is a default hdfs plan.", null, true),
+                new Plan(configuration.getCfBaseId() + "-multitenant-plan", "template",
+                        "Plan returning a template path on HDFS.", null, true),
                 new Plan(configuration.getCfBaseId() + "-encrypted-plan", "encrypted",
-                        "This is a encrypted hdfs plan.", null, true));
+                        "This is a encrypted hdfs plan.", null, true)
+        );
     }
 
     private Map<String, Object> getServiceDefinitionMetadata() {

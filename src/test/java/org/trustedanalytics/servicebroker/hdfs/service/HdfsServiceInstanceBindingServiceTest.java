@@ -16,12 +16,12 @@
 package org.trustedanalytics.servicebroker.hdfs.service;
 
 import com.google.common.collect.ImmutableMap;
-import org.trustedanalytics.servicebroker.hdfs.config.ExternalConfiguration;
 import org.cloudfoundry.community.servicebroker.model.CreateServiceInstanceBindingRequest;
 import org.cloudfoundry.community.servicebroker.model.CreateServiceInstanceRequest;
 import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
 import org.cloudfoundry.community.servicebroker.model.ServiceInstanceBinding;
 import org.cloudfoundry.community.servicebroker.service.ServiceInstanceBindingService;
+import org.cloudfoundry.community.servicebroker.service.ServiceInstanceService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -31,21 +31,22 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Collections;
+import java.util.UUID;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HdfsServiceInstanceBindingServiceTest {
 
-    private static final String CREDENTIALS_URI = "hdfs://namenode:port/";
-
-    @Mock
-    private ExternalConfiguration configuration;
+    private static final String CREDENTIALS_URI = "hdfs://namenode:port";
+    private static final String USERSPACE_ROOT_TEMPLATE = "/orgs/%{organization}/userspace/%{instance}";
 
     @Mock
     private ServiceInstanceBindingService instanceBindingService;
+
+    @Mock
+    private ServiceInstanceService instanceService;
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
@@ -57,28 +58,53 @@ public class HdfsServiceInstanceBindingServiceTest {
         service =
                 new HdfsServiceInstanceBindingService(instanceBindingService,
                         ImmutableMap.of(HdfsServiceInstanceBindingService.HADOOP_DEFAULT_FS, CREDENTIALS_URI),
-                        configuration);
+                        instanceService, USERSPACE_ROOT_TEMPLATE);
     }
 
-    private ServiceInstanceBinding getServiceInstanceBinding(String id) {
-        return new ServiceInstanceBinding(id, "serviceInstanceId", Collections.emptyMap(), null, "guid");
+    private ServiceInstanceBinding getServiceInstanceBinding(String id, String instanceId) {
+        return new ServiceInstanceBinding(id, instanceId, Collections.emptyMap(), null, "guid");
     }
 
-    private ServiceInstance getServiceInstance(String id) {
-        return new ServiceInstance(new CreateServiceInstanceRequest(id, "planId", "organizationGuid", "spaceGuid"));
+    private ServiceInstance getServiceInstance(String plan) {
+        UUID id = UUID.randomUUID();
+        UUID orgId = UUID.randomUUID();
+        return new ServiceInstance(new CreateServiceInstanceRequest(id.toString(), plan, orgId.toString(), "spaceGuid")
+                .withServiceInstanceId(id.toString()));
+    }
+
+    private CreateServiceInstanceBindingRequest getBindingRequest(ServiceInstance instance) {
+        return new CreateServiceInstanceBindingRequest(instance.getServiceDefinitionId(), instance.getPlanId(), "appGuid")
+                .withBindingId("bindingId").withServiceInstanceId(instance.getServiceInstanceId());
     }
 
     @Test
-    public void testCreateServiceInstanceBinding_success_saveAndReturnsNewServiceInstanceBindingWithCredentials()
+    public void testCreateServiceInstanceBinding_simplePlan_returnsNewServiceInstanceBindingWithCredentials()
             throws Exception {
-        when(configuration.getUserspaceChroot()).thenReturn("/userspace/root");
+        ServiceInstance instance = getServiceInstance("simple");
+        CreateServiceInstanceBindingRequest request = getBindingRequest(instance);
+        ServiceInstanceBinding binding = getServiceInstanceBinding("id", instance.getServiceInstanceId());
+        when(instanceBindingService.createServiceInstanceBinding(request)).thenReturn(binding);
+        when(instanceService.getServiceInstance(instance.getServiceInstanceId())).thenReturn(instance);
 
-        CreateServiceInstanceBindingRequest request = new CreateServiceInstanceBindingRequest(
-                getServiceInstance("serviceId").getServiceDefinitionId(), "planId", "appGuid").
-                withBindingId("bindingId").withServiceInstanceId("serviceInstanceId");
-        when(instanceBindingService.createServiceInstanceBinding(request)).thenReturn(getServiceInstanceBinding("id"));
-        ServiceInstanceBinding instance = service.createServiceInstanceBinding(request);
+        ServiceInstanceBinding result = service.createServiceInstanceBinding(request);
 
-        assertThat(instance.getCredentials().get("uri"), equalTo(CREDENTIALS_URI + "userspace/root/serviceInstanceId/"));
+        String expected = "hdfs://namenode:port/orgs/" + instance.getOrganizationGuid() + "/userspace/"
+                + instance.getServiceInstanceId() + "/";
+        assertEquals(expected, result.getCredentials().get("uri"));
+    }
+
+    @Test
+    public void testCreateServiceInstanceBinding_templatePlan_returnsNewServiceInstanceBindingWithCredentials()
+            throws Exception {
+        ServiceInstance instance = getServiceInstance("simple-multitenant");
+        CreateServiceInstanceBindingRequest request = getBindingRequest(instance);
+        ServiceInstanceBinding binding = getServiceInstanceBinding("id", instance.getServiceInstanceId());
+        when(instanceBindingService.createServiceInstanceBinding(request)).thenReturn(binding);
+        when(instanceService.getServiceInstance(instance.getServiceInstanceId())).thenReturn(instance);
+
+        ServiceInstanceBinding result = service.createServiceInstanceBinding(request);
+
+        String expected = CREDENTIALS_URI + "/orgs/%{organization}/userspace/" + instance.getServiceInstanceId() + "/";
+        assertEquals(expected, result.getCredentials().get("uri"));
     }
 }

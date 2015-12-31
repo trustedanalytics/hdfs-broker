@@ -3,7 +3,6 @@ applications:
   memory: 512M
   instances: 1
   host: hdfs-broker
-  buildpack: java_buildpack
   path: target/hdfs-broker-${version}.jar
   services:
   - kerberos-service

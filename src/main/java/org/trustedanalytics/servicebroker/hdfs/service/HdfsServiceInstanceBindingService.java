@@ -15,61 +15,73 @@
  */
 package org.trustedanalytics.servicebroker.hdfs.service;
 
-import com.google.common.base.Preconditions;
-import org.trustedanalytics.cfbroker.store.hdfs.helper.DirHelper;
-import org.trustedanalytics.cfbroker.store.impl.ForwardingServiceInstanceBindingServiceStore;
-import org.trustedanalytics.servicebroker.hdfs.config.ExternalConfiguration;
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
 import org.cloudfoundry.community.servicebroker.exception.ServiceInstanceBindingExistsException;
 import org.cloudfoundry.community.servicebroker.model.CreateServiceInstanceBindingRequest;
+import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
 import org.cloudfoundry.community.servicebroker.model.ServiceInstanceBinding;
 import org.cloudfoundry.community.servicebroker.service.ServiceInstanceBindingService;
+import org.cloudfoundry.community.servicebroker.service.ServiceInstanceService;
+import org.trustedanalytics.cfbroker.store.hdfs.helper.DirHelper;
+import org.trustedanalytics.cfbroker.store.hdfs.helper.HdfsPathTemplateUtils;
+import org.trustedanalytics.cfbroker.store.impl.ForwardingServiceInstanceBindingServiceStore;
+import org.trustedanalytics.cfbroker.store.impl.ServiceInstanceServiceStore;
+import org.trustedanalytics.servicebroker.hdfs.util.HdfsPlanHelper;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 
 public class HdfsServiceInstanceBindingService extends ForwardingServiceInstanceBindingServiceStore {
 
     public static final String HADOOP_DEFAULT_FS = "fs.defaultFS";
 
-    private ExternalConfiguration configuration;
-
     private final Map<String, Object> credentials;
+    private final ServiceInstanceService instanceService;
+    private final String userspacePathTemplate;
 
     public HdfsServiceInstanceBindingService(ServiceInstanceBindingService instanceBindingService,
-                                             Map<String, Object> credentials,
-                                             ExternalConfiguration configuration) {
+                                             Map<String, Object> credentials, ServiceInstanceService instanceService,
+                                             String userspacePathTemplate) {
         super(instanceBindingService);
         this.credentials = credentials;
-        this.configuration = configuration;
+        this.instanceService = instanceService;
+        this.userspacePathTemplate = userspacePathTemplate;
     }
 
     @Override
     public ServiceInstanceBinding createServiceInstanceBinding(CreateServiceInstanceBindingRequest request)
             throws ServiceInstanceBindingExistsException, ServiceBrokerException {
-        return withCredentials(super.createServiceInstanceBinding(request));
+        ServiceInstance instance = instanceService.getServiceInstance(request.getServiceInstanceId());
+        if(instance == null) {
+            throw new ServiceBrokerException(String.format("Service instance not found: [%s]",
+                    request.getServiceInstanceId()));
+        }
+        return withCredentials(super.createServiceInstanceBinding(request), instance);
     }
 
 
-    private ServiceInstanceBinding withCredentials(ServiceInstanceBinding serviceInstanceBinding) {
+    private ServiceInstanceBinding withCredentials(ServiceInstanceBinding serviceInstanceBinding, ServiceInstance instance) {
         return new ServiceInstanceBinding(serviceInstanceBinding.getId(),
                 serviceInstanceBinding.getServiceInstanceId(),
-                getCredentialsFor(serviceInstanceBinding.getServiceInstanceId()),
+                getCredentialsFor(instance),
                 serviceInstanceBinding.getSyslogDrainUrl(),
                 serviceInstanceBinding.getAppGuid());
     }
 
-    Map<String, Object> getCredentialsFor(String serviceInstanceId) {
+    private Map<String, Object> getCredentialsFor(ServiceInstance instance) {
         Map<String, Object> credentialsCopy = new HashMap<>(credentials);
-        Preconditions.checkArgument(configuration.getUserspaceChroot().startsWith("/"));
 
-        String dir =
-                DirHelper.removeTrailingSlashes(
-                        credentialsCopy.get(HADOOP_DEFAULT_FS).toString())
-                        + DirHelper.addLeadingSlash(DirHelper.removeTrailingSlashes(configuration
-                        .getUserspaceChroot())) + "/" + serviceInstanceId + "/";
-        credentialsCopy.put("uri", dir);
+        UUID instanceId = UUID.fromString(instance.getServiceInstanceId());
+        UUID orgId = !HdfsPlanHelper.isMultitenant(instance.getPlanId())
+                ? UUID.fromString(instance.getOrganizationGuid()) : null;
+        String dir = HdfsPathTemplateUtils.fill(userspacePathTemplate, instanceId, orgId);
+
+        String uri = DirHelper.concat(credentialsCopy.get(HADOOP_DEFAULT_FS).toString(), dir);
+        uri = DirHelper.removeTrailingSlashes(uri) + "/";
+        credentialsCopy.put("uri", uri);
+
         return credentialsCopy;
     }
 

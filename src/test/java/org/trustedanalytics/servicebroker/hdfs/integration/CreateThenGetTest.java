@@ -31,6 +31,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
+import java.util.UUID;
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = {Application.class, HdfsLocalConfiguration.class})
 @WebAppConfiguration
@@ -44,7 +46,7 @@ public class CreateThenGetTest {
     @Test
     public void getServiceInstance_instanceCreated_returnsInstance() throws Exception {
 
-        String testId = "id2";
+        String testId = UUID.randomUUID().toString();
 
         //arrange
         ServiceInstance instance = CfModelsFactory.getServiceInstance(testId);

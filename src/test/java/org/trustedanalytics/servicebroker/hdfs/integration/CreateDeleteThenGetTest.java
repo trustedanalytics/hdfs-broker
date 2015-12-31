@@ -33,8 +33,10 @@ import org.trustedanalytics.servicebroker.hdfs.config.Application;
 import org.trustedanalytics.servicebroker.hdfs.config.ExternalConfiguration;
 import org.trustedanalytics.servicebroker.hdfs.integration.config.HdfsLocalConfiguration;
 import org.trustedanalytics.servicebroker.hdfs.integration.utils.CfModelsFactory;
+import org.trustedanalytics.servicebroker.hdfs.integration.utils.RequestFactory;
 
 import java.io.FileNotFoundException;
+import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.nullValue;
@@ -52,10 +54,6 @@ public class CreateDeleteThenGetTest {
     private FileSystem userFileSystem;
 
     @Autowired
-    @Qualifier("superUser")
-    private FileSystem adminFileSystem;
-
-    @Autowired
     private ExternalConfiguration conf;
 
     @Autowired
@@ -67,18 +65,11 @@ public class CreateDeleteThenGetTest {
     @Test
     public void deleteServiceInstance_instanceCreated_getReturnsNull() throws Exception {
 
-        String serviceInstanceId = "id3";
+        String serviceInstanceId = UUID.randomUUID().toString();
 
         //arrange
         ServiceInstance instance = CfModelsFactory.getServiceInstance(serviceInstanceId);
-        CreateServiceInstanceRequest request = new CreateServiceInstanceRequest(
-            CfModelsFactory.getServiceDefinition().getId(),
-            instance.getPlanId(),
-            instance.getOrganizationGuid(),
-            instance.getSpaceGuid()).withServiceInstanceId(
-            instance.getServiceInstanceId()).withServiceDefinition(
-            CfModelsFactory.getServiceDefinition());
-
+        CreateServiceInstanceRequest request = getCreateServiceInstanceRequest(instance);
         serviceBean.createServiceInstance(request);
 
         //act
@@ -95,13 +86,16 @@ public class CreateDeleteThenGetTest {
     @Test(expected = FileNotFoundException.class)
     public void deleteBinding_bindingCreated_bindingDeletedFromFileSystem() throws Exception {
 
-        String bindingId = "bindingId3";
-        String serviceInstanceId = "serviceInstanceId";
+        String bindingId = UUID.randomUUID().toString();
+        String serviceInstanceId = UUID.randomUUID().toString();
+
+        ServiceInstance instance = CfModelsFactory.getServiceInstance(serviceInstanceId);
+        serviceBean.createServiceInstance(getCreateServiceInstanceRequest(instance));
 
         //arrange
         CreateServiceInstanceBindingRequest bindReq = new CreateServiceInstanceBindingRequest(
-            CfModelsFactory.getServiceInstance(serviceInstanceId).getServiceDefinitionId(),
-            "planId", "appGuid")
+            instance.getServiceDefinitionId(), "planId", "appGuid")
+            .withServiceInstanceId(serviceInstanceId)
             .withBindingId(bindingId);
         bindingBean.createServiceInstanceBinding(bindReq);
 
@@ -115,5 +109,15 @@ public class CreateDeleteThenGetTest {
         //assert
         userFileSystem.getXAttrs(
             new Path(conf.getMetadataChroot() + "/" + serviceInstanceId + "/" + bindingId));
+    }
+
+    private CreateServiceInstanceRequest getCreateServiceInstanceRequest(ServiceInstance instance) {
+        return new CreateServiceInstanceRequest(
+                CfModelsFactory.getServiceDefinition().getId(),
+                instance.getPlanId(),
+                instance.getOrganizationGuid(),
+                instance.getSpaceGuid())
+            .withServiceInstanceId(instance.getServiceInstanceId())
+            .withServiceDefinition(CfModelsFactory.getServiceDefinition());
     }
 }

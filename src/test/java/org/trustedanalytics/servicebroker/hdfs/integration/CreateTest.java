@@ -16,12 +16,7 @@
 package org.trustedanalytics.servicebroker.hdfs.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.trustedanalytics.servicebroker.hdfs.config.Application;
-import org.trustedanalytics.servicebroker.hdfs.config.ExternalConfiguration;
-import org.trustedanalytics.servicebroker.hdfs.integration.config.HdfsLocalConfiguration;
-import org.trustedanalytics.servicebroker.hdfs.integration.utils.CfModelsAssert;
-import org.trustedanalytics.servicebroker.hdfs.integration.utils.CfModelsFactory;
+import com.google.common.collect.ImmutableMap;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.cloudfoundry.community.servicebroker.model.CreateServiceInstanceBindingRequest;
@@ -33,13 +28,23 @@ import org.cloudfoundry.community.servicebroker.service.ServiceInstanceService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.trustedanalytics.cfbroker.store.hdfs.helper.HdfsPathTemplateUtils;
+import org.trustedanalytics.servicebroker.hdfs.config.Application;
+import org.trustedanalytics.servicebroker.hdfs.config.ExternalConfiguration;
+import org.trustedanalytics.servicebroker.hdfs.integration.config.HdfsLocalConfiguration;
+import org.trustedanalytics.servicebroker.hdfs.integration.utils.CfModelsAssert;
+import org.trustedanalytics.servicebroker.hdfs.integration.utils.CfModelsFactory;
+import org.trustedanalytics.servicebroker.hdfs.integration.utils.RequestFactory;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.endsWith;
@@ -75,23 +80,17 @@ public class CreateTest {
     public void createServiceInstance_validRequest_metadataSavedAndUserDirProvisioned()
         throws Exception {
 
-        String testId = "id1";
+        String testId = UUID.randomUUID().toString();
 
         //arrange
         ServiceInstance instance = CfModelsFactory.getServiceInstance(testId);
-        CreateServiceInstanceRequest request = new CreateServiceInstanceRequest(
-            CfModelsFactory.getServiceDefinition().getId(),
-            instance.getPlanId(),
-            instance.getOrganizationGuid(),
-            instance.getSpaceGuid()).withServiceInstanceId(
-            instance.getServiceInstanceId()).withServiceDefinition(
-            CfModelsFactory.getServiceDefinition());
+        CreateServiceInstanceRequest request = getCreateServiceInstanceRequest(instance);
 
         //act
         serviceBean.createServiceInstance(request);
 
         //assert
-        assertTrue(userDirectoryProvisioned(testId));
+        assertTrue(userDirectoryProvisioned(testId, instance.getOrganizationGuid()));
         ServiceInstance savedInstance = getSavedInstanceFromFileSystem(testId);
         CfModelsAssert.serviceInstancesAreEqual(savedInstance, instance);
     }
@@ -99,13 +98,17 @@ public class CreateTest {
     @Test
     public void createBinding_validRequest_bindingSavedOnFileSystem() throws Exception {
 
-        String serviceInstanceId = "serviceInstanceId";
-        String bindingId = "bindingId1";
+        String serviceInstanceId = UUID.randomUUID().toString();
+        String bindingId = UUID.randomUUID().toString();
+        ServiceInstance instance = CfModelsFactory.getServiceInstance(serviceInstanceId);
+
+        CreateServiceInstanceRequest request = getCreateServiceInstanceRequest(instance);
+        serviceBean.createServiceInstance(request);
 
         //arrange
         CreateServiceInstanceBindingRequest bindReq = new CreateServiceInstanceBindingRequest(
-            CfModelsFactory.getServiceInstance("serviceId").getServiceDefinitionId(), "planId",
-            "appGuid").withBindingId(bindingId).withServiceInstanceId(serviceInstanceId);
+            instance.getServiceDefinitionId(), "planId", "appGuid").withBindingId(bindingId)
+            .withServiceInstanceId(serviceInstanceId);
 
         //act
         ServiceInstanceBinding serviceInstanceBinding =
@@ -113,18 +116,18 @@ public class CreateTest {
         String userDirUri = (String) serviceInstanceBinding.getCredentials().get("uri");
 
         //assert
-        assertThat(userDirUri, endsWith(getUserDirectoryPath(serviceInstanceId)));
+        assertThat(userDirUri, endsWith(getUserDirectoryPath(serviceInstanceId, instance.getOrganizationGuid())));
         CreateServiceInstanceBindingRequest savedRequest =
             getSavedBindReqFromFileSystem(serviceInstanceId, bindingId);
         CfModelsAssert.bindingRequestsAreEqual(savedRequest, bindReq);
     }
 
-    private boolean userDirectoryProvisioned(String serviceInstanceId) throws IOException {
-        return userFileSystem.exists(new Path(getUserDirectoryPath(serviceInstanceId)));
+    private boolean userDirectoryProvisioned(String serviceInstanceId, String organizationId) throws IOException {
+        return userFileSystem.exists(new Path(getUserDirectoryPath(serviceInstanceId, organizationId)));
     }
 
-    private String getUserDirectoryPath(String serviceInstanceId) {
-        return conf.getUserspaceChroot() + "/" + serviceInstanceId + "/";
+    private String getUserDirectoryPath(String serviceInstanceId, String organizationId) {
+        return HdfsPathTemplateUtils.fill(conf.getUserspaceChroot(), serviceInstanceId, organizationId) + "/";
     }
 
     private ServiceInstance getSavedInstanceFromFileSystem(String id) throws IOException {
@@ -140,5 +143,15 @@ public class CreateTest {
             .getXAttrs(new Path(conf.getMetadataChroot() + "/" + serviceId + "/" + bindingId))
             .get(conf.getBindingXattr());
         return mapper.readValue(savedBytes, CreateServiceInstanceBindingRequest.class);
+    }
+
+    private CreateServiceInstanceRequest getCreateServiceInstanceRequest(ServiceInstance instance) {
+        return new CreateServiceInstanceRequest(
+                CfModelsFactory.getServiceDefinition().getId(),
+                instance.getPlanId(),
+                instance.getOrganizationGuid(),
+                instance.getSpaceGuid()).withServiceInstanceId(
+                instance.getServiceInstanceId())
+                .withServiceDefinition(CfModelsFactory.getServiceDefinition());
     }
 }

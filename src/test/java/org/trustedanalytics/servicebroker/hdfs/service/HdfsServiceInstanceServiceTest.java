@@ -28,13 +28,16 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.trustedanalytics.cfbroker.store.hdfs.helper.HdfsPathTemplateUtils;
 import org.trustedanalytics.cfbroker.store.hdfs.service.HdfsClient;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -42,6 +45,7 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class HdfsServiceInstanceServiceTest {
 
+    public static final String METADATA_PATH = "/org/%{organization}/brokers/metadata/%{instance}";
 
     private HdfsServiceInstanceService service;
 
@@ -49,7 +53,7 @@ public class HdfsServiceInstanceServiceTest {
     private ServiceInstanceService instanceService;
 
     @Mock
-    private HdfsClient userspaceHdfsClient;
+    private HdfsClient userHdfsClient;
 
     @Mock
     private HdfsClient adminHdfsClient;
@@ -57,15 +61,20 @@ public class HdfsServiceInstanceServiceTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
+    private String instanceId;
+    private String orgId;
+
     @Before
-    public void before() {
-        service = new HdfsServiceInstanceService(instanceService, userspaceHdfsClient, adminHdfsClient);
+    public void before() throws IOException {
+        service = new HdfsServiceInstanceService(instanceService, userHdfsClient, adminHdfsClient, METADATA_PATH);
+        instanceId = UUID.randomUUID().toString();
+        orgId = UUID.randomUUID().toString();
     }
 
     @Test
     public void testCreateServiceInstance_successWithSharedPlan_delegateCallAndForwardBackReturnedServiceInstance()
             throws Exception {
-        ServiceInstance instance = getServiceInstance("id", "plan-shared");
+        ServiceInstance instance = getServiceInstance(instanceId.toString(), "plan-shared");
         ServiceInstance returnedInstance = createServiceInstanceWithDir(instance);
         assertThat(returnedInstance, equalTo(instance));
     }
@@ -73,9 +82,9 @@ public class HdfsServiceInstanceServiceTest {
     @Test
     public void testCreateServiceInstance_successWithEncryptedPlan_delegateCallAndForwardBackReturnedServiceInstance()
             throws Exception {
-        ServiceInstance instance = getServiceInstance("id", "plan-encrypted");
+        ServiceInstance instance = getServiceInstance(instanceId.toString(), "plan-encrypted");
         ServiceInstance returnedInstance = createServiceInstanceWithDir(instance);
-        verify(adminHdfsClient).createEncryptedZone("id");
+        verify(adminHdfsClient).createEncryptedZone(getExpextedPath());
         assertThat(returnedInstance, equalTo(instance));
     }
 
@@ -88,14 +97,14 @@ public class HdfsServiceInstanceServiceTest {
         when(instanceService.createServiceInstance(request)).thenReturn(instance);
         ServiceInstance returnedInstance = service.createServiceInstance(request);
         verify(instanceService).createServiceInstance(request);
-        verify(userspaceHdfsClient).createDir("id");
+        verify(userHdfsClient).createDir(getExpextedPath());
         return returnedInstance;
     }
 
     private ServiceInstance getServiceInstance(String id, String plan) {
         return new ServiceInstance(
-                new CreateServiceInstanceRequest(getServiceDefinition().getId(), plan, "organizationGuid", "spaceGuid")
-                        .withServiceInstanceId(id));
+                new CreateServiceInstanceRequest(getServiceDefinition().getId(), plan, orgId,
+                        UUID.randomUUID().toString()).withServiceInstanceId(id));
     }
 
 
@@ -103,5 +112,8 @@ public class HdfsServiceInstanceServiceTest {
         return new ServiceDefinition("def", "name", "desc", true, Collections.emptyList());
     }
 
+    private String getExpextedPath() {
+        return HdfsPathTemplateUtils.fill(METADATA_PATH, instanceId, orgId);
+    }
 
 }

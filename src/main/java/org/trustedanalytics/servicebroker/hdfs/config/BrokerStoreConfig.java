@@ -23,8 +23,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.trustedanalytics.cfbroker.store.api.BrokerStore;
-import org.trustedanalytics.cfbroker.store.hdfs.service.ChrootedHdfsClient;
 import org.trustedanalytics.cfbroker.store.hdfs.service.HdfsClient;
+import org.trustedanalytics.cfbroker.store.hdfs.service.SimpleHdfsClient;
 import org.trustedanalytics.cfbroker.store.hdfs.service.XAttrsHdfsStore;
 import org.trustedanalytics.cfbroker.store.serialization.RepositoryDeserializer;
 import org.trustedanalytics.cfbroker.store.serialization.RepositorySerializer;
@@ -60,19 +60,18 @@ public class BrokerStoreConfig {
     @Bean
     @Qualifier(Qualifiers.SERVICE_INSTANCE)
     public BrokerStore<ServiceInstance> getServiceInstanceStore() throws IOException {
-
-        return new XAttrsHdfsStore<>(getHdfsClient(), instanceSerializer, instanceDeserializer, configuration.getInstanceXattr());
+        return new XAttrsHdfsStore<>(getHdfsClient(), instanceSerializer, instanceDeserializer,
+                configuration.getInstanceXattr(), configuration.getMetadataChroot());
     }
 
     @Bean
     @Qualifier(Qualifiers.SERVICE_INSTANCE_BINDING)
     public BrokerStore<CreateServiceInstanceBindingRequest> getServiceInstanceBindingStore() throws IOException {
-
-        return new XAttrsHdfsStore<>(getHdfsClient(), bindingSerializer, bindingDeserializer, configuration.getBindingXattr());
+        return new XAttrsHdfsStore<>(getHdfsClient(), bindingSerializer, bindingDeserializer,
+                configuration.getBindingXattr(), configuration.getMetadataChroot());
     }
 
     private HdfsClient getHdfsClient() throws IOException {
-        return new ChrootedHdfsClient(fs,
-            configuration.getMetadataChroot());
+        return new SimpleHdfsClient(fs);
     }
 }

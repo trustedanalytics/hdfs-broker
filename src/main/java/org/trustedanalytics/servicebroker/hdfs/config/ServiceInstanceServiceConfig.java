@@ -16,8 +16,8 @@
 package org.trustedanalytics.servicebroker.hdfs.config;
 
 import org.trustedanalytics.cfbroker.store.api.BrokerStore;
-import org.trustedanalytics.cfbroker.store.hdfs.service.ChrootedHdfsClient;
 import org.trustedanalytics.cfbroker.store.hdfs.service.HdfsClient;
+import org.trustedanalytics.cfbroker.store.hdfs.service.SimpleHdfsClient;
 import org.trustedanalytics.cfbroker.store.impl.ServiceInstanceServiceStore;
 import org.trustedanalytics.servicebroker.hdfs.service.HdfsServiceInstanceService;
 import org.apache.hadoop.fs.FileSystem;
@@ -58,8 +58,9 @@ public class ServiceInstanceServiceConfig {
             throws IOException, LoginException {
 
         LOGGER.info("ChRoot : " + configuration.getUserspaceChroot());
-        HdfsClient hdfsClient = new ChrootedHdfsClient(fs, configuration.getUserspaceChroot());
-        HdfsClient hdfsAdminClient = new ChrootedHdfsClient(adminFs, configuration.getUserspaceChroot());
-        return new HdfsServiceInstanceService(new ServiceInstanceServiceStore(store), hdfsClient, hdfsAdminClient);
+        HdfsClient hdfsClient = new SimpleHdfsClient(fs);
+        HdfsClient hdfsAdminClient = new SimpleHdfsClient(adminFs);
+        return new HdfsServiceInstanceService(new ServiceInstanceServiceStore(store), hdfsClient, hdfsAdminClient,
+                configuration.getUserspaceChroot());
     }
 }
