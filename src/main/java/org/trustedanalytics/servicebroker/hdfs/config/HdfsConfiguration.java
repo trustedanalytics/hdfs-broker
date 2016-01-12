@@ -24,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
-import org.trustedanalytics.cfbroker.config.ConfigurationException;
 import org.trustedanalytics.hadoop.config.ConfigurationHelper;
 import org.trustedanalytics.hadoop.config.ConfigurationHelperImpl;
 import org.trustedanalytics.hadoop.config.PropertyLocator;
@@ -147,7 +146,7 @@ public class HdfsConfiguration {
                         property.name() + " not found in VCAP_SERVICES"));
     }
 
-    private Configuration getHadoopConfiguration() throws LoginException, IOException, ConfigurationException {
+    private Configuration getHadoopConfiguration() throws LoginException, IOException {
         return HadoopZipConfiguration.createHadoopZipConfiguration(
             configuration.getHdfsProvidedZip()).getAsHadoopConfiguration();
     }

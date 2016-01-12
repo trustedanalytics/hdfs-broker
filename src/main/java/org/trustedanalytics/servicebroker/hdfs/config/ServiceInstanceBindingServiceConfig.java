@@ -31,7 +31,6 @@ import org.trustedanalytics.servicebroker.hdfs.service.HdfsServiceInstanceBindin
 import org.trustedanalytics.servicebroker.hdfs.service.HdfsServiceInstanceService;
 
 import javax.security.auth.login.LoginException;
-import javax.xml.xpath.XPathExpressionException;
 import java.io.IOException;
 import java.util.Map;
 
@@ -47,13 +46,13 @@ public class ServiceInstanceBindingServiceConfig {
 
     @Bean
     public ServiceInstanceBindingService getServiceInstanceBindingService(ServiceInstanceService serviceInstanceService)
-        throws IOException, LoginException, XPathExpressionException {
+        throws IOException, LoginException {
 
         return new HdfsServiceInstanceBindingService(new ServiceInstanceBindingServiceStore(store), getCredentials(),
                 serviceInstanceService, configuration.getUserspaceChroot());
     }
 
-    private Map<String, Object> getCredentials() throws IOException, ConfigurationException {
+    private Map<String, Object> getCredentials() throws IOException {
       HadoopZipConfiguration hadoopZipConfiguration =
           HadoopZipConfiguration.createHadoopZipConfiguration(configuration.getHdfsProvidedZip());
       Map<String, String> configParams = hadoopZipConfiguration.getAsParameterMap();
