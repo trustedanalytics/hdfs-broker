@@ -15,6 +15,7 @@
  */
 package org.trustedanalytics.servicebroker.hdfs.service;
 
+import org.apache.hadoop.fs.Path;
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
 import org.cloudfoundry.community.servicebroker.exception.ServiceInstanceExistsException;
 import org.cloudfoundry.community.servicebroker.model.CreateServiceInstanceRequest;
@@ -84,7 +85,7 @@ public class HdfsServiceInstanceServiceTest {
             throws Exception {
         ServiceInstance instance = getServiceInstance(instanceId.toString(), "plan-encrypted");
         ServiceInstance returnedInstance = createServiceInstanceWithDir(instance);
-        verify(adminHdfsClient).createEncryptedZone(getExpextedPath());
+        verify(adminHdfsClient).createKeyAndEncryptedZone(instanceId.toString(), new Path(getExpextedPath()));
         assertThat(returnedInstance, equalTo(instance));
     }
 

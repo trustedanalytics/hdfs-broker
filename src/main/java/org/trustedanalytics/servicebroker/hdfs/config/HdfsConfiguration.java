@@ -131,7 +131,7 @@ public class HdfsConfiguration {
 
     private FileSystem getFileSystemForUser(Configuration config, String user)
             throws URISyntaxException, IOException, InterruptedException {
-        LOGGER.info("Creating filesytem with kerberos auth for user: " + user);
+        LOGGER.info("Creating filesytem with for user: " + user);
         return FileSystem.get(new URI(config.getRaw(HdfsServiceInstanceBindingService.HADOOP_DEFAULT_FS)),
                 config, user);
     }

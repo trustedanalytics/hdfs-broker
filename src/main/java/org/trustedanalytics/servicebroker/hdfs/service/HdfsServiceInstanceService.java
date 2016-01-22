@@ -15,6 +15,7 @@
  */
 package org.trustedanalytics.servicebroker.hdfs.service;
 
+import org.apache.hadoop.fs.Path;
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
 import org.cloudfoundry.community.servicebroker.exception.ServiceInstanceExistsException;
 import org.cloudfoundry.community.servicebroker.model.CreateServiceInstanceRequest;
@@ -75,9 +76,11 @@ public class HdfsServiceInstanceService extends ForwardingServiceInstanceService
     }
 
     private void createEncryptedZone(UUID instanceId, UUID orgId) throws ServiceBrokerException {
+
+
         try {
-            String path = HdfsPathTemplateUtils.fill(userspacePathTemplate, instanceId, orgId);
-            encryptedHdfsClient.createEncryptedZone(path);
+          String path = HdfsPathTemplateUtils.fill(userspacePathTemplate, instanceId, orgId);
+          encryptedHdfsClient.createKeyAndEncryptedZone(instanceId.toString(), new Path(path));
         } catch (IOException e) {
             throw new ServiceBrokerException(
                     "Unable to provision encrypted directory for: " + instanceId, e);
