@@ -20,16 +20,16 @@ import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
 
 public class RequestFactory {
 
-    private RequestFactory() {
-    }
+  private RequestFactory() {}
 
-    public static CreateServiceInstanceRequest getCreateServiceInstanceRequest(ServiceInstance instance) {
-        return new CreateServiceInstanceRequest(
-                CfModelsFactory.getServiceDefinition().getId(),
-                instance.getPlanId(),
-                instance.getOrganizationGuid(),
-                instance.getSpaceGuid()).withServiceInstanceId(
-                instance.getServiceInstanceId()).withServiceDefinition(
-                CfModelsFactory.getServiceDefinition());
-    }
+  public static CreateServiceInstanceRequest getCreateServiceInstanceRequest(
+      ServiceInstance instance) {
+    return new CreateServiceInstanceRequest(
+        CfModelsFactory.getServiceDefinition().getId(),
+        instance.getPlanId(),
+        instance.getOrganizationGuid(),
+        instance.getSpaceGuid()).withServiceInstanceId(
+          instance.getServiceInstanceId()).withServiceDefinition(
+            CfModelsFactory.getServiceDefinition());
+  }
 }

@@ -15,23 +15,22 @@
  */
 package org.trustedanalytics.servicebroker.hdfs.integration.utils;
 
+import java.util.Collections;
+import java.util.UUID;
+
 import org.cloudfoundry.community.servicebroker.model.CreateServiceInstanceRequest;
 import org.cloudfoundry.community.servicebroker.model.ServiceDefinition;
 import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
 
-import java.util.Collections;
-import java.util.UUID;
-
 public class CfModelsFactory {
-    public static ServiceInstance getServiceInstance(String id) {
-        String organizationId = UUID.randomUUID().toString();
-        String spaceId = UUID.randomUUID().toString();
-        return new ServiceInstance(
-            new CreateServiceInstanceRequest(getServiceDefinition().getId(), "planId",
-                    organizationId, spaceId).withServiceInstanceId(id));
-    }
+  public static ServiceInstance getServiceInstance(String id) {
+    String organizationId = UUID.randomUUID().toString();
+    String spaceId = UUID.randomUUID().toString();
+    return new ServiceInstance(new CreateServiceInstanceRequest(getServiceDefinition().getId(),
+        "fake-shared-plan", organizationId, spaceId).withServiceInstanceId(id));
+  }
 
-    public static ServiceDefinition getServiceDefinition() {
-        return new ServiceDefinition("def", "name", "desc", true, Collections.emptyList());
-    }
+  public static ServiceDefinition getServiceDefinition() {
+    return new ServiceDefinition("def", "name", "desc", true, Collections.emptyList());
+  }
 }

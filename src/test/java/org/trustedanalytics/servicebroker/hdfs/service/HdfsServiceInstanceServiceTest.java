@@ -15,6 +15,15 @@
  */
 package org.trustedanalytics.servicebroker.hdfs.service;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.UUID;
+
 import org.apache.hadoop.fs.Path;
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
 import org.cloudfoundry.community.servicebroker.exception.ServiceInstanceExistsException;
@@ -32,89 +41,86 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.trustedanalytics.cfbroker.store.hdfs.helper.HdfsPathTemplateUtils;
 import org.trustedanalytics.cfbroker.store.hdfs.service.HdfsClient;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.UUID;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
+import org.trustedanalytics.servicebroker.hdfs.config.catalog.BrokerPlans;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HdfsServiceInstanceServiceTest {
 
-    public static final String METADATA_PATH = "/org/%{organization}/brokers/metadata/%{instance}";
+  public static final String METADATA_PATH = "/org/%{organization}/brokers/metadata/%{instance}";
 
-    private HdfsServiceInstanceService service;
+  private HdfsServiceInstanceService service;
 
-    @Mock
-    private ServiceInstanceService instanceService;
+  @Mock
+  private ServiceInstanceService instanceService;
 
-    @Mock
-    private HdfsClient userHdfsClient;
+  @Mock
+  private HdfsClient userHdfsClient;
 
-    @Mock
-    private HdfsClient adminHdfsClient;
+  @Mock
+  private HdfsClient adminHdfsClient;
 
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
+  @Mock
+  private BrokerPlans brokerPlans;
 
-    private String instanceId;
-    private String orgId;
+  @Rule
+  public ExpectedException thrown = ExpectedException.none();
 
-    @Before
-    public void before() throws IOException {
-        service = new HdfsServiceInstanceService(instanceService, userHdfsClient, adminHdfsClient, METADATA_PATH);
-        instanceId = UUID.randomUUID().toString();
-        orgId = UUID.randomUUID().toString();
-    }
+  private String instanceId;
+  private String orgId;
 
-    @Test
-    public void testCreateServiceInstance_successWithSharedPlan_delegateCallAndForwardBackReturnedServiceInstance()
-            throws Exception {
-        ServiceInstance instance = getServiceInstance(instanceId.toString(), "plan-shared");
-        ServiceInstance returnedInstance = createServiceInstanceWithDir(instance);
-        assertThat(returnedInstance, equalTo(instance));
-    }
+  @Before
+  public void before() throws IOException {
+    service =
+        new HdfsServiceInstanceService(instanceService, userHdfsClient, adminHdfsClient,
+            brokerPlans, METADATA_PATH);
+    instanceId = UUID.randomUUID().toString();
+    orgId = UUID.randomUUID().toString();
+  }
 
-    @Test
-    public void testCreateServiceInstance_successWithEncryptedPlan_delegateCallAndForwardBackReturnedServiceInstance()
-            throws Exception {
-        ServiceInstance instance = getServiceInstance(instanceId.toString(), "plan-encrypted");
-        ServiceInstance returnedInstance = createServiceInstanceWithDir(instance);
-        verify(adminHdfsClient).createKeyAndEncryptedZone(instanceId.toString(), new Path(getExpextedPath()));
-        assertThat(returnedInstance, equalTo(instance));
-    }
+  @Test
+  public void testCreateServiceInstance_successWithSharedPlan_delegateCallAndForwardBackReturnedServiceInstance()
+      throws Exception {
+    ServiceInstance instance = getServiceInstance(instanceId.toString(), "fake-shared-plan");
+    ServiceInstance returnedInstance = createServiceInstanceWithDir(instance);
+    assertThat(returnedInstance, equalTo(instance));
+  }
 
-    private ServiceInstance createServiceInstanceWithDir(ServiceInstance instance)
-            throws ServiceBrokerException, ServiceInstanceExistsException, IOException {
-        CreateServiceInstanceRequest request = new CreateServiceInstanceRequest(
-                getServiceDefinition().getId(), instance.getPlanId(), instance.getOrganizationGuid(), instance.getSpaceGuid()).
-                withServiceInstanceId(instance.getServiceInstanceId()).withServiceDefinition(getServiceDefinition());
+  @Test
+  public void testCreateServiceInstance_successWithEncryptedPlan_delegateCallAndForwardBackReturnedServiceInstance()
+      throws Exception {
+    ServiceInstance instance = getServiceInstance(instanceId.toString(), "fake-encrypted-plan");
+    ServiceInstance returnedInstance = createServiceInstanceWithDir(instance);
+    verify(adminHdfsClient).createKeyAndEncryptedZone(instanceId.toString(),
+        new Path(getExpextedPath()));
+    assertThat(returnedInstance, equalTo(instance));
+  }
 
-        when(instanceService.createServiceInstance(request)).thenReturn(instance);
-        ServiceInstance returnedInstance = service.createServiceInstance(request);
-        verify(instanceService).createServiceInstance(request);
-        verify(userHdfsClient).createDir(getExpextedPath());
-        return returnedInstance;
-    }
+  private ServiceInstance createServiceInstanceWithDir(ServiceInstance instance)
+      throws ServiceBrokerException, ServiceInstanceExistsException, IOException {
+    CreateServiceInstanceRequest request =
+        new CreateServiceInstanceRequest(getServiceDefinition().getId(), instance.getPlanId(),
+            instance.getOrganizationGuid(), instance.getSpaceGuid()).withServiceInstanceId(
+            instance.getServiceInstanceId()).withServiceDefinition(getServiceDefinition());
 
-    private ServiceInstance getServiceInstance(String id, String plan) {
-        return new ServiceInstance(
-                new CreateServiceInstanceRequest(getServiceDefinition().getId(), plan, orgId,
-                        UUID.randomUUID().toString()).withServiceInstanceId(id));
-    }
+    when(instanceService.createServiceInstance(request)).thenReturn(instance);
+    when(brokerPlans.getPlanProvisioning(instance.getPlanId())).thenReturn(true);
+    ServiceInstance returnedInstance = service.createServiceInstance(request);
+    verify(instanceService).createServiceInstance(request);
+    verify(userHdfsClient).createDir(getExpextedPath());
+    return returnedInstance;
+  }
+
+  private ServiceInstance getServiceInstance(String id, String plan) {
+    return new ServiceInstance(new CreateServiceInstanceRequest(getServiceDefinition().getId(),
+        plan, orgId, UUID.randomUUID().toString()).withServiceInstanceId(id));
+  }
 
 
-    private ServiceDefinition getServiceDefinition() {
-        return new ServiceDefinition("def", "name", "desc", true, Collections.emptyList());
-    }
+  private ServiceDefinition getServiceDefinition() {
+    return new ServiceDefinition("def", "name", "desc", true, Collections.emptyList());
+  }
 
-    private String getExpextedPath() {
-        return HdfsPathTemplateUtils.fill(METADATA_PATH, instanceId, orgId);
-    }
-
+  private String getExpextedPath() {
+    return HdfsPathTemplateUtils.fill(METADATA_PATH, instanceId, orgId);
+  }
 }

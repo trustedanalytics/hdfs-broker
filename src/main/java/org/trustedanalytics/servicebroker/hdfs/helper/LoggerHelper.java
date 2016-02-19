@@ -17,15 +17,14 @@ package org.trustedanalytics.servicebroker.hdfs.helper;
 
 public class LoggerHelper {
 
-    private LoggerHelper() {
-    }
+  private LoggerHelper() {}
 
-    public static String getParamsAsString(String methodName, Object... params) {
-        StringBuilder builder = new StringBuilder(methodName);
-        builder.append(" : ");
-        for (Object param : params) {
-            builder.append((param == null) ? "NULL" : param.toString()).append(", ");
-        }
-        return builder.toString();
+  public static String getParamsAsString(String methodName, Object... params) {
+    StringBuilder builder = new StringBuilder(methodName);
+    builder.append(" : ");
+    for (Object param : params) {
+      builder.append((param == null) ? "NULL" : param.toString()).append(", ");
     }
+    return builder.toString();
+  }
 }

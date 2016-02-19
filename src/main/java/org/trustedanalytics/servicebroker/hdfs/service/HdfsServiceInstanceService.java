@@ -15,75 +15,72 @@
  */
 package org.trustedanalytics.servicebroker.hdfs.service;
 
+import java.io.IOException;
+import java.util.UUID;
+
 import org.apache.hadoop.fs.Path;
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
 import org.cloudfoundry.community.servicebroker.exception.ServiceInstanceExistsException;
 import org.cloudfoundry.community.servicebroker.model.CreateServiceInstanceRequest;
 import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
 import org.cloudfoundry.community.servicebroker.service.ServiceInstanceService;
+import org.trustedanalytics.cfbroker.store.hdfs.helper.HdfsPathTemplateUtils;
 import org.trustedanalytics.cfbroker.store.hdfs.service.HdfsClient;
 import org.trustedanalytics.cfbroker.store.impl.ForwardingServiceInstanceServiceStore;
-import org.trustedanalytics.cfbroker.store.hdfs.helper.HdfsPathTemplateUtils;
-import org.trustedanalytics.servicebroker.hdfs.util.HdfsPlanHelper;
 
-import java.io.IOException;
-import java.util.UUID;
+import org.trustedanalytics.servicebroker.hdfs.config.catalog.BrokerPlans;
 
 public class HdfsServiceInstanceService extends ForwardingServiceInstanceServiceStore {
 
-    private final HdfsClient hdfsClient;
-    private final HdfsClient encryptedHdfsClient;
-    private final String userspacePathTemplate;
+  private final BrokerPlans brokerPlans;
+  private final HdfsClient hdfsClient;
+  private final HdfsClient encryptedHdfsClient;
+  private final String userspacePathTemplate;
 
-    public HdfsServiceInstanceService(ServiceInstanceService instanceService,
-                                      HdfsClient hdfsClient,
-                                      HdfsClient encryptedHdfsClient,
-                                      String userspacePathTemplate) {
-        super(instanceService);
-        this.hdfsClient = hdfsClient;
-        this.encryptedHdfsClient = encryptedHdfsClient;
-        this.userspacePathTemplate = userspacePathTemplate;
+  public HdfsServiceInstanceService(ServiceInstanceService instanceService,
+                                    HdfsClient hdfsClient,
+                                    HdfsClient encryptedHdfsClient,
+                                    BrokerPlans brokerPlans,
+                                    String userspacePathTemplate) {
+    super(instanceService);
+    this.hdfsClient = hdfsClient;
+    this.encryptedHdfsClient = encryptedHdfsClient;
+    this.userspacePathTemplate = userspacePathTemplate;
+    this.brokerPlans = brokerPlans;
+  }
+
+  @Override
+  public ServiceInstance createServiceInstance(CreateServiceInstanceRequest request)
+      throws ServiceInstanceExistsException, ServiceBrokerException {
+    ServiceInstance serviceInstance = super.createServiceInstance(request);
+
+    if(brokerPlans.getPlanProvisioning(request.getPlanId())) {
+      UUID instanceId = UUID.fromString(serviceInstance.getServiceInstanceId());
+      UUID orgId = UUID.fromString(serviceInstance.getOrganizationGuid());
+      provisionDirectory(instanceId, orgId);
+      if (brokerPlans.isEncrypted(request.getPlanId())) {
+        createEncryptedZone(instanceId, orgId);
+      }
     }
+    return serviceInstance;
+  }
 
-    @Override
-    public ServiceInstance createServiceInstance(CreateServiceInstanceRequest request)
-            throws ServiceInstanceExistsException, ServiceBrokerException {
-
-        ServiceInstance serviceInstance = super.createServiceInstance(request);
-
-        if(!HdfsPlanHelper.isMultitenant(request.getPlanId())) {
-
-            UUID instanceId = UUID.fromString(serviceInstance.getServiceInstanceId());
-            UUID orgId = UUID.fromString(serviceInstance.getOrganizationGuid());
-
-            provisionDirectory(instanceId, orgId);
-
-            if (HdfsPlanHelper.isEncrypted(request.getPlanId())) {
-                createEncryptedZone(instanceId, orgId);
-            }
-        }
-        return serviceInstance;
+  private void provisionDirectory(UUID instanceId, UUID orgId) throws ServiceBrokerException {
+    try {
+      String path = HdfsPathTemplateUtils.fill(userspacePathTemplate, instanceId, orgId);
+      hdfsClient.createDir(path);
+    } catch (IOException e) {
+      throw new ServiceBrokerException("Unable to provision directory for: " + instanceId, e);
     }
+  }
 
-    private void provisionDirectory(UUID instanceId, UUID orgId) throws ServiceBrokerException {
-        try {
-            String path = HdfsPathTemplateUtils.fill(userspacePathTemplate, instanceId, orgId);
-            hdfsClient.createDir(path);
-        } catch (IOException e) {
-            throw new ServiceBrokerException(
-                    "Unable to provision directory for: " + instanceId, e);
-        }
+  private void createEncryptedZone(UUID instanceId, UUID orgId) throws ServiceBrokerException {
+    try {
+      String path = HdfsPathTemplateUtils.fill(userspacePathTemplate, instanceId, orgId);
+      encryptedHdfsClient.createKeyAndEncryptedZone(instanceId.toString(), new Path(path));
+    } catch (IOException e) {
+      throw new ServiceBrokerException(
+          "Unable to provision encrypted directory for: " + instanceId, e);
     }
-
-    private void createEncryptedZone(UUID instanceId, UUID orgId) throws ServiceBrokerException {
-
-
-        try {
-          String path = HdfsPathTemplateUtils.fill(userspacePathTemplate, instanceId, orgId);
-          encryptedHdfsClient.createKeyAndEncryptedZone(instanceId.toString(), new Path(path));
-        } catch (IOException e) {
-            throw new ServiceBrokerException(
-                    "Unable to provision encrypted directory for: " + instanceId, e);
-        }
-    }
+  }
 }

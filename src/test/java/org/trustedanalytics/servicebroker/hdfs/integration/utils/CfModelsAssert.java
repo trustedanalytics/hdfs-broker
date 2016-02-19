@@ -15,38 +15,26 @@
  */
 package org.trustedanalytics.servicebroker.hdfs.integration.utils;
 
-import org.cloudfoundry.community.servicebroker.model.CreateServiceInstanceBindingRequest;
-import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 
+import org.cloudfoundry.community.servicebroker.model.CreateServiceInstanceBindingRequest;
+import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
+
 public class CfModelsAssert {
-    public static void serviceInstancesAreEqual(ServiceInstance actual,
-        ServiceInstance expected) {
+  public static void serviceInstancesAreEqual(ServiceInstance actual, ServiceInstance expected) {
+    assertThat(actual.getDashboardUrl(), equalTo(expected.getDashboardUrl()));
+    assertThat(actual.getOrganizationGuid(), equalTo(expected.getOrganizationGuid()));
+    assertThat(actual.getPlanId(), equalTo(expected.getPlanId()));
+    assertThat(actual.getServiceDefinitionId(), equalTo(expected.getServiceDefinitionId()));
+    assertThat(actual.getServiceInstanceId(), equalTo(expected.getServiceInstanceId()));
+    assertThat(actual.getSpaceGuid(), equalTo(expected.getSpaceGuid()));
+  }
 
-        assertThat(actual.getDashboardUrl(),
-            equalTo(expected.getDashboardUrl()));
-        assertThat(actual.getOrganizationGuid(),
-            equalTo(expected.getOrganizationGuid()));
-        assertThat(actual.getPlanId(),
-            equalTo(expected.getPlanId()));
-        assertThat(actual.getServiceDefinitionId(),
-            equalTo(expected.getServiceDefinitionId()));
-        assertThat(actual.getServiceInstanceId(),
-            equalTo(expected.getServiceInstanceId()));
-        assertThat(actual.getSpaceGuid(),
-            equalTo(expected.getSpaceGuid()));
-    }
-
-    public static void bindingRequestsAreEqual(CreateServiceInstanceBindingRequest actual,
-        CreateServiceInstanceBindingRequest expected) {
-
-        assertThat(actual.getAppGuid(),
-            equalTo(expected.getAppGuid()));
-        assertThat(actual.getPlanId(),
-            equalTo(expected.getPlanId()));
-        assertThat(actual.getServiceDefinitionId(),
-            equalTo(expected.getServiceDefinitionId()));
-    }
+  public static void bindingRequestsAreEqual(CreateServiceInstanceBindingRequest actual,
+      CreateServiceInstanceBindingRequest expected) {
+    assertThat(actual.getAppGuid(), equalTo(expected.getAppGuid()));
+    assertThat(actual.getPlanId(), equalTo(expected.getPlanId()));
+    assertThat(actual.getServiceDefinitionId(), equalTo(expected.getServiceDefinitionId()));
+  }
 }

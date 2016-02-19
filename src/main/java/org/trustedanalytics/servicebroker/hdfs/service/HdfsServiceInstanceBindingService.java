@@ -15,6 +15,10 @@
  */
 package org.trustedanalytics.servicebroker.hdfs.service;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
 import org.cloudfoundry.community.servicebroker.exception.ServiceInstanceBindingExistsException;
 import org.cloudfoundry.community.servicebroker.model.CreateServiceInstanceBindingRequest;
@@ -25,64 +29,63 @@ import org.cloudfoundry.community.servicebroker.service.ServiceInstanceService;
 import org.trustedanalytics.cfbroker.store.hdfs.helper.DirHelper;
 import org.trustedanalytics.cfbroker.store.hdfs.helper.HdfsPathTemplateUtils;
 import org.trustedanalytics.cfbroker.store.impl.ForwardingServiceInstanceBindingServiceStore;
-import org.trustedanalytics.cfbroker.store.impl.ServiceInstanceServiceStore;
-import org.trustedanalytics.servicebroker.hdfs.util.HdfsPlanHelper;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import org.trustedanalytics.servicebroker.hdfs.config.catalog.BrokerPlans;
 
 
 public class HdfsServiceInstanceBindingService extends ForwardingServiceInstanceBindingServiceStore {
 
-    public static final String HADOOP_DEFAULT_FS = "fs.defaultFS";
+  public static final String HADOOP_DEFAULT_FS = "fs.defaultFS";
 
-    private final Map<String, Object> credentials;
-    private final ServiceInstanceService instanceService;
-    private final String userspacePathTemplate;
+  private final Map<String, Object> credentials;
+  private final ServiceInstanceService instanceService;
+  private final String userspacePathTemplate;
+  private final BrokerPlans brokerPlans;
 
-    public HdfsServiceInstanceBindingService(ServiceInstanceBindingService instanceBindingService,
-                                             Map<String, Object> credentials, ServiceInstanceService instanceService,
-                                             String userspacePathTemplate) {
-        super(instanceBindingService);
-        this.credentials = credentials;
-        this.instanceService = instanceService;
-        this.userspacePathTemplate = userspacePathTemplate;
+  public HdfsServiceInstanceBindingService(ServiceInstanceBindingService instanceBindingService,
+                                           Map<String, Object> credentials,
+                                           ServiceInstanceService instanceService,
+                                           BrokerPlans brokerPlans,
+                                           String userspacePathTemplate) {
+    super(instanceBindingService);
+    this.credentials = credentials;
+    this.instanceService = instanceService;
+    this.userspacePathTemplate = userspacePathTemplate;
+    this.brokerPlans = brokerPlans;
+  }
+
+  @Override
+  public ServiceInstanceBinding createServiceInstanceBinding(
+      CreateServiceInstanceBindingRequest request) throws ServiceInstanceBindingExistsException,
+      ServiceBrokerException {
+    ServiceInstance instance = instanceService.getServiceInstance(request.getServiceInstanceId());
+    if (instance == null) {
+      throw new ServiceBrokerException(String.format("Service instance not found: [%s]",
+          request.getServiceInstanceId()));
     }
+    return withCredentials(super.createServiceInstanceBinding(request), instance);
+  }
 
-    @Override
-    public ServiceInstanceBinding createServiceInstanceBinding(CreateServiceInstanceBindingRequest request)
-            throws ServiceInstanceBindingExistsException, ServiceBrokerException {
-        ServiceInstance instance = instanceService.getServiceInstance(request.getServiceInstanceId());
-        if(instance == null) {
-            throw new ServiceBrokerException(String.format("Service instance not found: [%s]",
-                    request.getServiceInstanceId()));
-        }
-        return withCredentials(super.createServiceInstanceBinding(request), instance);
-    }
+  private ServiceInstanceBinding withCredentials(ServiceInstanceBinding serviceInstanceBinding,
+      ServiceInstance instance) {
+    return new ServiceInstanceBinding(serviceInstanceBinding.getId(),
+        serviceInstanceBinding.getServiceInstanceId(), getCredentialsFor(instance),
+        serviceInstanceBinding.getSyslogDrainUrl(), serviceInstanceBinding.getAppGuid());
+  }
 
+  private Map<String, Object> getCredentialsFor(ServiceInstance instance) {
+    Map<String, Object> credentialsCopy = new HashMap<>(credentials);
 
-    private ServiceInstanceBinding withCredentials(ServiceInstanceBinding serviceInstanceBinding, ServiceInstance instance) {
-        return new ServiceInstanceBinding(serviceInstanceBinding.getId(),
-                serviceInstanceBinding.getServiceInstanceId(),
-                getCredentialsFor(instance),
-                serviceInstanceBinding.getSyslogDrainUrl(),
-                serviceInstanceBinding.getAppGuid());
-    }
+    UUID instanceId = UUID.fromString(instance.getServiceInstanceId());
+    UUID orgId =
+        !brokerPlans.isMultitenant(instance.getPlanId()) ? UUID.fromString(instance
+            .getOrganizationGuid()) : null;
+    String dir = HdfsPathTemplateUtils.fill(userspacePathTemplate, instanceId, orgId);
 
-    private Map<String, Object> getCredentialsFor(ServiceInstance instance) {
-        Map<String, Object> credentialsCopy = new HashMap<>(credentials);
+    String uri = DirHelper.concat(credentialsCopy.get(HADOOP_DEFAULT_FS).toString(), dir);
+    uri = DirHelper.removeTrailingSlashes(uri) + "/";
+    credentialsCopy.put("uri", uri);
 
-        UUID instanceId = UUID.fromString(instance.getServiceInstanceId());
-        UUID orgId = !HdfsPlanHelper.isMultitenant(instance.getPlanId())
-                ? UUID.fromString(instance.getOrganizationGuid()) : null;
-        String dir = HdfsPathTemplateUtils.fill(userspacePathTemplate, instanceId, orgId);
-
-        String uri = DirHelper.concat(credentialsCopy.get(HADOOP_DEFAULT_FS).toString(), dir);
-        uri = DirHelper.removeTrailingSlashes(uri) + "/";
-        credentialsCopy.put("uri", uri);
-
-        return credentialsCopy;
-    }
-
+    return credentialsCopy;
+  }
 }

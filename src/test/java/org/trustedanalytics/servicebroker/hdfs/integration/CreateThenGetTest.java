@@ -15,10 +15,8 @@
  */
 package org.trustedanalytics.servicebroker.hdfs.integration;
 
-import org.trustedanalytics.servicebroker.hdfs.config.Application;
-import org.trustedanalytics.servicebroker.hdfs.integration.config.HdfsLocalConfiguration;
-import org.trustedanalytics.servicebroker.hdfs.integration.utils.CfModelsAssert;
-import org.trustedanalytics.servicebroker.hdfs.integration.utils.CfModelsFactory;
+import java.util.UUID;
+
 import org.cloudfoundry.community.servicebroker.model.CreateServiceInstanceRequest;
 import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
 import org.cloudfoundry.community.servicebroker.service.ServiceInstanceService;
@@ -30,6 +28,10 @@ import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.trustedanalytics.servicebroker.hdfs.config.Application;
+import org.trustedanalytics.servicebroker.hdfs.integration.config.HdfsLocalConfiguration;
+import org.trustedanalytics.servicebroker.hdfs.integration.utils.CfModelsAssert;
+import org.trustedanalytics.servicebroker.hdfs.integration.utils.CfModelsFactory;
 
 import java.util.UUID;
 
@@ -40,30 +42,27 @@ import java.util.UUID;
 @ActiveProfiles("integration-test")
 public class CreateThenGetTest {
 
-    @Autowired
-    private ServiceInstanceService serviceBean;
+  @Autowired
+  private ServiceInstanceService serviceBean;
 
-    @Test
-    public void getServiceInstance_instanceCreated_returnsInstance() throws Exception {
+  @Test
+  public void getServiceInstance_instanceCreated_returnsInstance() throws Exception {
+    String testId = UUID.randomUUID().toString();
 
-        String testId = UUID.randomUUID().toString();
+    //arrange
+    ServiceInstance instance = CfModelsFactory.getServiceInstance(testId);
+    CreateServiceInstanceRequest request =
+        new CreateServiceInstanceRequest(CfModelsFactory.getServiceDefinition().getId(),
+            instance.getPlanId(), instance.getOrganizationGuid(), instance.getSpaceGuid())
+            .withServiceInstanceId(instance.getServiceInstanceId()).withServiceDefinition(
+                CfModelsFactory.getServiceDefinition());
 
-        //arrange
-        ServiceInstance instance = CfModelsFactory.getServiceInstance(testId);
-        CreateServiceInstanceRequest request = new CreateServiceInstanceRequest(
-            CfModelsFactory.getServiceDefinition().getId(),
-            instance.getPlanId(),
-            instance.getOrganizationGuid(),
-            instance.getSpaceGuid()).withServiceInstanceId(
-            instance.getServiceInstanceId()).withServiceDefinition(
-            CfModelsFactory.getServiceDefinition());
+    serviceBean.createServiceInstance(request);
 
-        serviceBean.createServiceInstance(request);
+    //act
+    ServiceInstance savedInstance = serviceBean.getServiceInstance(testId);
 
-        //act
-        ServiceInstance savedInstance = serviceBean.getServiceInstance(testId);
-
-        //assert
-        CfModelsAssert.serviceInstancesAreEqual(savedInstance, instance);
-    }
+    //assert
+    CfModelsAssert.serviceInstancesAreEqual(savedInstance, instance);
+  }
 }

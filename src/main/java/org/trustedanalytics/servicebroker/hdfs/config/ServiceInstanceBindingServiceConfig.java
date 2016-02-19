@@ -15,7 +15,11 @@
  */
 package org.trustedanalytics.servicebroker.hdfs.config;
 
-import com.google.common.collect.ImmutableMap;
+import java.io.IOException;
+import java.util.Map;
+
+import javax.security.auth.login.LoginException;
+
 import org.cloudfoundry.community.servicebroker.model.CreateServiceInstanceBindingRequest;
 import org.cloudfoundry.community.servicebroker.service.ServiceInstanceBindingService;
 import org.cloudfoundry.community.servicebroker.service.ServiceInstanceService;
@@ -23,48 +27,47 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.trustedanalytics.cfbroker.config.ConfigurationException;
 import org.trustedanalytics.cfbroker.config.HadoopZipConfiguration;
 import org.trustedanalytics.cfbroker.store.api.BrokerStore;
 import org.trustedanalytics.cfbroker.store.impl.ServiceInstanceBindingServiceStore;
+import org.trustedanalytics.servicebroker.hdfs.config.catalog.BrokerPlans;
 import org.trustedanalytics.servicebroker.hdfs.service.HdfsServiceInstanceBindingService;
 import org.trustedanalytics.servicebroker.hdfs.service.HdfsServiceInstanceService;
 
-import javax.security.auth.login.LoginException;
-import java.io.IOException;
-import java.util.Map;
+import com.google.common.collect.ImmutableMap;
 
 @Configuration
 public class ServiceInstanceBindingServiceConfig {
 
-    @Autowired
-    private ExternalConfiguration configuration;
+  @Autowired
+  private BrokerPlans brokerPlans;
 
-    @Autowired
-    @Qualifier(value = Qualifiers.SERVICE_INSTANCE_BINDING)
-    private BrokerStore<CreateServiceInstanceBindingRequest> store;
+  @Autowired
+  private ExternalConfiguration configuration;
 
-    @Bean
-    public ServiceInstanceBindingService getServiceInstanceBindingService(ServiceInstanceService serviceInstanceService)
-        throws IOException, LoginException {
+  @Autowired
+  @Qualifier(value = Qualifiers.SERVICE_INSTANCE_BINDING)
+  private BrokerStore<CreateServiceInstanceBindingRequest> store;
 
-        return new HdfsServiceInstanceBindingService(new ServiceInstanceBindingServiceStore(store), getCredentials(),
-                serviceInstanceService, configuration.getUserspaceChroot());
+  @Bean
+  public ServiceInstanceBindingService getServiceInstanceBindingService(
+      ServiceInstanceService serviceInstanceService) throws IOException, LoginException {
+    return new HdfsServiceInstanceBindingService(new ServiceInstanceBindingServiceStore(store),
+        getCredentials(), serviceInstanceService, brokerPlans, configuration.getUserspaceChroot());
+  }
+
+  private Map<String, Object> getCredentials() throws IOException {
+    HadoopZipConfiguration hadoopZipConfiguration =
+        HadoopZipConfiguration.createHadoopZipConfiguration(configuration.getHdfsProvidedZip());
+    Map<String, String> configParams = hadoopZipConfiguration.getAsParameterMap();
+    if (!configParams.containsKey(HdfsServiceInstanceBindingService.HADOOP_DEFAULT_FS)) {
+      throw new IllegalStateException(HdfsServiceInstanceBindingService.HADOOP_DEFAULT_FS
+          + " was not found in hadoop configuration");
     }
 
-    private Map<String, Object> getCredentials() throws IOException {
-      HadoopZipConfiguration hadoopZipConfiguration =
-          HadoopZipConfiguration.createHadoopZipConfiguration(configuration.getHdfsProvidedZip());
-      Map<String, String> configParams = hadoopZipConfiguration.getAsParameterMap();
-      if (!configParams.containsKey(HdfsServiceInstanceBindingService.HADOOP_DEFAULT_FS)) {
-            throw new IllegalStateException(HdfsServiceInstanceBindingService.HADOOP_DEFAULT_FS
-                + " was not found in hadoop configuration");
-        }
-
-        return new ImmutableMap.Builder()
-            .put(HdfsServiceInstanceBindingService.HADOOP_DEFAULT_FS,
-                configParams.get(HdfsServiceInstanceBindingService.HADOOP_DEFAULT_FS))
-            .putAll(
-                hadoopZipConfiguration.getBrokerCredentials()).build();
-    }
+    return new ImmutableMap.Builder()
+        .put(HdfsServiceInstanceBindingService.HADOOP_DEFAULT_FS,
+            configParams.get(HdfsServiceInstanceBindingService.HADOOP_DEFAULT_FS))
+        .putAll(hadoopZipConfiguration.getBrokerCredentials()).build();
+  }
 }

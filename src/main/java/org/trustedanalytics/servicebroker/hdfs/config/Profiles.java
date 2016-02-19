@@ -16,10 +16,8 @@
 package org.trustedanalytics.servicebroker.hdfs.config;
 
 
-final class Profiles {
-    public static final String CLOUD = "cloud";
+public final class Profiles {
+  public static final String CLOUD = "cloud";
 
-    private Profiles() {
-
-    }
+  private Profiles() {}
 }

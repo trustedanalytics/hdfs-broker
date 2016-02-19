@@ -15,11 +15,10 @@
  */
 package org.trustedanalytics.servicebroker.hdfs.config;
 
-import org.trustedanalytics.cfbroker.store.api.BrokerStore;
-import org.trustedanalytics.cfbroker.store.hdfs.service.HdfsClient;
-import org.trustedanalytics.cfbroker.store.hdfs.service.SimpleHdfsClient;
-import org.trustedanalytics.cfbroker.store.impl.ServiceInstanceServiceStore;
-import org.trustedanalytics.servicebroker.hdfs.service.HdfsServiceInstanceService;
+import java.io.IOException;
+
+import javax.security.auth.login.LoginException;
+
 import org.apache.hadoop.fs.FileSystem;
 import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
 import org.cloudfoundry.community.servicebroker.service.ServiceInstanceService;
@@ -29,38 +28,42 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import javax.security.auth.login.LoginException;
-import java.io.IOException;
+import org.trustedanalytics.cfbroker.store.api.BrokerStore;
+import org.trustedanalytics.cfbroker.store.hdfs.service.HdfsClient;
+import org.trustedanalytics.cfbroker.store.hdfs.service.SimpleHdfsClient;
+import org.trustedanalytics.cfbroker.store.impl.ServiceInstanceServiceStore;
+import org.trustedanalytics.servicebroker.hdfs.config.catalog.BrokerPlans;
+import org.trustedanalytics.servicebroker.hdfs.service.HdfsServiceInstanceService;
 
 @Configuration
 public class ServiceInstanceServiceConfig {
 
-    private static final Logger LOGGER = LoggerFactory
-        .getLogger(ServiceInstanceServiceConfig.class);
-    @Autowired
-    private ExternalConfiguration configuration;
+  private static final Logger LOGGER = LoggerFactory.getLogger(ServiceInstanceServiceConfig.class);
 
-    @Autowired
-    @Qualifier(Qualifiers.USER)
-    private FileSystem fs;
+  @Autowired
+  private ExternalConfiguration configuration;
 
-    @Autowired
-    @Qualifier(Qualifiers.SUPER_USER)
-    private FileSystem adminFs;
+  @Autowired
+  private BrokerPlans brokerPlans;
 
-    @Autowired
-    @Qualifier(value = Qualifiers.SERVICE_INSTANCE)
-    private BrokerStore<ServiceInstance> store;
+  @Autowired
+  @Qualifier(Qualifiers.USER)
+  private FileSystem fs;
 
-    @Bean
-    public ServiceInstanceService getServiceInstanceService()
-            throws IOException, LoginException {
+  @Autowired
+  @Qualifier(Qualifiers.SUPER_USER)
+  private FileSystem adminFs;
 
-        LOGGER.info("ChRoot : " + configuration.getUserspaceChroot());
-        HdfsClient hdfsClient = new SimpleHdfsClient(fs);
-        HdfsClient hdfsAdminClient = new SimpleHdfsClient(adminFs);
-        return new HdfsServiceInstanceService(new ServiceInstanceServiceStore(store), hdfsClient, hdfsAdminClient,
-                configuration.getUserspaceChroot());
-    }
+  @Autowired
+  @Qualifier(value = Qualifiers.SERVICE_INSTANCE)
+  private BrokerStore<ServiceInstance> store;
+
+  @Bean
+  public ServiceInstanceService getServiceInstanceService() throws IOException, LoginException {
+    LOGGER.info("ChRoot : " + configuration.getUserspaceChroot());
+    HdfsClient hdfsClient = new SimpleHdfsClient(fs);
+    HdfsClient hdfsAdminClient = new SimpleHdfsClient(adminFs);
+    return new HdfsServiceInstanceService(new ServiceInstanceServiceStore(store), hdfsClient,
+        hdfsAdminClient, brokerPlans, configuration.getUserspaceChroot());
+  }
 }

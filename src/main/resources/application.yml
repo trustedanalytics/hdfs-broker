@@ -2,18 +2,17 @@ security:
 #password cf client will use when interacting with broker
   user.password: ${user.password}
 hdfs:
-  brokergroupname: supergroup
-  #name of extended attribute holding information about binding
-  binding.xattr: user.binding
-  #name of extended attribute holding information about broker instance
-  instance.xattr: user.instance
-  #path on hdfs where service instance and service binding metadata are stored
-  metadata.chroot: ${broker.metadata.path:${broker.path}/metadata}
+  #superuser for hdfs
+  superuser: ${hdfs.user:hdfs}
   #path on hdfs where broker creates dirs for user apps
   userspace.chroot: ${broker.userspace.path:/org/%{organization}/brokers/userspace/%{instance}}
-  #path on hdfs where broker creates dirs for multitenant apps
+  #encoded hadoop configuration files for hdfs
   provided.zip: ${hadoop.provided.zip:{}}
-  keytab:
+  #keytab for hdfs superuser, which will create encrypted zones
+  keytab: ${hdfs.keytab:{}}
+store:
+  #optional parameter to configure zookeeper-store
+  path: ${broker.store.znode:/broker/hdfs/metadata}
 cf:
   #name of service in cloud foundry catalog
   servicename: ${cf.catalog.servicename:hdfs}
@@ -22,4 +21,5 @@ cf:
   #id of base plan in cloud foundry catalog
   baseId: ${BASE_GUID:}
 metadata:
+  #encoded image file viewed in marketplace
   imageUrl: ${IMAGE_URL:}

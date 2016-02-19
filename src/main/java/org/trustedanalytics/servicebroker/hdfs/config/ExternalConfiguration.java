@@ -15,131 +15,118 @@
  */
 package org.trustedanalytics.servicebroker.hdfs.config;
 
+import javax.validation.constraints.NotNull;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-
-import javax.validation.constraints.NotNull;
 
 @Configuration
 public class ExternalConfiguration {
 
-    @Value("${metadata.imageUrl}")
-    @NotNull
-    private String imageUrl;
+  @Value("${hdfs.userspace.chroot}")
+  @NotNull
+  private String userspaceChroot;
 
-    @Value("${hdfs.binding.xattr}")
-    @NotNull
-    private String bindingXattr;
+  @Value("${hdfs.provided.zip}")
+  private String hdfsProvidedZip;
 
-    @Value("${hdfs.instance.xattr}")
-    @NotNull
-    private String instanceXattr;
+  @Value("${hdfs.superuser}")
+  @NotNull
+  private String hdfsSuperuser;
 
-    @Value("${hdfs.metadata.chroot}")
-    @NotNull
-    private String metadataChroot;
+  @Value("${hdfs.keytab}")
+  @NotNull
+  private String hdfsSuperuserKeytab;
 
-    @Value("${hdfs.userspace.chroot}")
-    @NotNull
-    private String userspaceChroot;
+  @Value("${store.path}")
+  @NotNull
+  private String brokerStorePath;
 
-    @Value("${cf.servicename}")
-    @NotNull
-    private String cfServiceName;
+  @Value("${cf.servicename}")
+  @NotNull
+  private String cfServiceName;
 
-    @Value("${cf.serviceid}")
-    @NotNull
-    private String cfServiceId;
+  @Value("${cf.serviceid}")
+  @NotNull
+  private String cfServiceId;
 
-    @Value("${cf.baseId}")
-    @NotNull
-    private String cfBaseId;
+  @Value("${cf.baseId}")
+  @NotNull
+  private String cfBaseId;
 
-    @Value("${hdfs.provided.zip}")
-    private String hdfsProvidedZip;
+  @Value("${metadata.imageUrl}")
+  @NotNull
+  private String imageUrl;
 
-    @Value("${hdfs.keytab}")
-    @NotNull
-    private String keytab;
+  public String getUserspaceChroot() {
+    return userspaceChroot;
+  }
 
-    public String getBindingXattr() {
-        return bindingXattr;
-    }
+  public void setUserspaceChroot(String userspaceChroot) {
+    this.userspaceChroot = userspaceChroot;
+  }
 
-    public void setBindingXattr(String bindingXattr) {
-        this.bindingXattr = bindingXattr;
-    }
+  public String getHdfsProvidedZip() {
+    return hdfsProvidedZip;
+  }
 
-    public String getInstanceXattr() {
-        return instanceXattr;
-    }
+  public void setHdfsProvidedZip(String hdfsProvidedZip) {
+    this.hdfsProvidedZip = hdfsProvidedZip;
+  }
 
-    public void setInstanceXattr(String instanceXattr) {
-        this.instanceXattr = instanceXattr;
-    }
+  public String getHdfsSuperuserKeytab() {
+    return hdfsSuperuserKeytab;
+  }
 
-    public String getMetadataChroot() {
-        return metadataChroot;
-    }
+  public void setHdfsSuperuserKeytab(String keytab) {
+    this.hdfsSuperuserKeytab = keytab;
+  }
 
-    public void setMetadataChroot(String metadataChroot) {
-        this.metadataChroot = metadataChroot;
-    }
+  public String getCfServiceName() {
+    return cfServiceName;
+  }
 
-    public String getUserspaceChroot() {
-        return userspaceChroot;
-    }
+  public void setCfServiceName(String cfServiceName) {
+    this.cfServiceName = cfServiceName;
+  }
 
-    public void setUserspaceChroot(String userspaceChroot) {
-        this.userspaceChroot = userspaceChroot;
-    }
+  public String getCfServiceId() {
+    return cfServiceId;
+  }
 
-    public String getCfServiceName() {
-        return cfServiceName;
-    }
+  public void setCfServiceId(String cfServiceId) {
+    this.cfServiceId = cfServiceId;
+  }
 
-    public void setCfServiceName(String cfServiceName) {
-        this.cfServiceName = cfServiceName;
-    }
+  public String getCfBaseId() {
+    return cfBaseId;
+  }
 
-    public String getCfServiceId() {
-        return cfServiceId;
-    }
+  public void setCfBaseId(String cfBaseId) {
+    this.cfBaseId = cfBaseId;
+  }
 
-    public void setCfServiceId(String cfServiceId) {
-        this.cfServiceId = cfServiceId;
-    }
+  public String getImageUrl() {
+    return imageUrl;
+  }
 
-    public String getImageUrl() {
-        return imageUrl;
-    }
+  public void setImageUrl(String imageUrl) {
+    this.imageUrl = imageUrl;
+  }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
+  public String getBrokerStorePath() {
+    return brokerStorePath;
+  }
 
-    public String getCfBaseId() {
-        return cfBaseId;
-    }
+  public void setBrokerStorePath(String brokerStorePath) {
+    this.brokerStorePath = brokerStorePath;
+  }
 
-    public void setCfBaseId(String cfBaseId) {
-        this.cfBaseId = cfBaseId;
-    }
+  public String getHdfsSuperuser() {
+    return hdfsSuperuser;
+  }
 
-    public String getKeytab() {
-        return keytab;
-    }
-
-    public void setKeytab(String keytab) {
-        this.keytab = keytab;
-    }
-
-    public String getHdfsProvidedZip() {
-        return hdfsProvidedZip;
-    }
-
-    public void setHdfsProvidedZip(String hdfsProvidedZip) {
-        this.hdfsProvidedZip = hdfsProvidedZip;
-    }
-
+  public void setHdfsSuperuser(String hdfsSuperuser) {
+    this.hdfsSuperuser = hdfsSuperuser;
+  }
 }
