@@ -6,7 +6,7 @@ applications:
   path: target/hdfs-broker-${version}.jar
   services:
   - kerberos-service
-  - zookeeper-broker-store
+  - zookeeper-for-hdfs
   env:
     USER_PASSWORD: "placeholder"
     HADOOP_PROVIDED_ZIP: "placeholder"
