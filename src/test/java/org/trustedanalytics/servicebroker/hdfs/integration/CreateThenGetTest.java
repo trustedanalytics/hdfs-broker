@@ -15,6 +15,11 @@
  */
 package org.trustedanalytics.servicebroker.hdfs.integration;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.trustedanalytics.servicebroker.test.cloudfoundry.CfModelsAssert.deeplyEqualTo;
+import static org.trustedanalytics.servicebroker.test.cloudfoundry.CfModelsFactory.getCreateInstanceRequest;
+import static org.trustedanalytics.servicebroker.test.cloudfoundry.CfModelsFactory.getServiceInstance;
+
 import java.util.UUID;
 
 import org.cloudfoundry.community.servicebroker.model.CreateServiceInstanceRequest;
@@ -28,12 +33,9 @@ import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+
 import org.trustedanalytics.servicebroker.hdfs.config.Application;
 import org.trustedanalytics.servicebroker.hdfs.integration.config.HdfsLocalConfiguration;
-import org.trustedanalytics.servicebroker.hdfs.integration.utils.CfModelsAssert;
-import org.trustedanalytics.servicebroker.hdfs.integration.utils.CfModelsFactory;
-
-import java.util.UUID;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = {Application.class, HdfsLocalConfiguration.class})
@@ -46,23 +48,17 @@ public class CreateThenGetTest {
   private ServiceInstanceService serviceBean;
 
   @Test
-  public void getServiceInstance_instanceCreated_returnsInstance() throws Exception {
-    String testId = UUID.randomUUID().toString();
-
+  public void getServiceInstancePlanShared_instanceCreated_returnsInstance() throws Exception {
     //arrange
-    ServiceInstance instance = CfModelsFactory.getServiceInstance(testId);
-    CreateServiceInstanceRequest request =
-        new CreateServiceInstanceRequest(CfModelsFactory.getServiceDefinition().getId(),
-            instance.getPlanId(), instance.getOrganizationGuid(), instance.getSpaceGuid())
-            .withServiceInstanceId(instance.getServiceInstanceId()).withServiceDefinition(
-                CfModelsFactory.getServiceDefinition());
-
+    String testId = UUID.randomUUID().toString();
+    ServiceInstance instance = getServiceInstance(testId, "fakeBaseGuid-shared-plan");
+    CreateServiceInstanceRequest request = getCreateInstanceRequest(instance);
     serviceBean.createServiceInstance(request);
 
     //act
     ServiceInstance savedInstance = serviceBean.getServiceInstance(testId);
 
     //assert
-    CfModelsAssert.serviceInstancesAreEqual(savedInstance, instance);
+    assertThat(savedInstance, deeplyEqualTo(instance));
   }
 }

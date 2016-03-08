@@ -1,15 +1,40 @@
+---
 security:
   user.password: fake
 hdfs:
   superuser: hdfs
-  userspace.chroot: /org/%{organization}/brokers/userspace/%{instance}
+  userspace.chroot: /test/org/%{organization}/brokers/userspace/%{instance}
   provided.zip: 'UEsDBAoAAAAAAFyGh0cAAAAAAAAAAAAAAAADABwAaGMvVVQJAAPfqmVW56plVnV4CwABBFbn3F4EAQLYXlBLAwQUAAAACAD8dIdHkPZogNMAAABUAQAAEAAcAGhjL2hkZnMtc2l0ZS54bWxVVAkAAyyMZVb3jGVWdXgLAAEEVufcXgQBAthefY/BTsMwEETv+QqTu23KiYPrUlWpQKItIo44IjfephbpOlonEf17HHqpEHDb0c7M21WLz1PLRqDoA87zmbjNGWAdnMdmnldmze/zhc4ydcP5cuhDAwhke3Bsf2arNgwuSbaxaBsgznWm6oAH3wzJlBp1xpjqKHRA/XkSSaI9gXaHKKYBgwPxAbQHClF05LH2nW2V/HZdAqNtB9DHFJHvj7vSPFQlfytKw+/Eard5qUwhnrameN0un5W8mCesvOb+e0QEGn0N8Rfq1Xr2R7mSP17+AlBLAwQUAAAACABchodHsS8LJJsAAADSAAAAEAAcAGhjL2NvcmUtc2l0ZS54bWxVVAkAA9+qZVbnqmVWdXgLAAEEVufcXgQBAtheXY1NDsIgGET3PQWyp9idMZTGmHTnSj0Alg8kodDw09jbS9uFics3M3nDus9o0QwhGu9a3NRHjMANXhqnW/x89OSEO15V7EDIJSevwUEQCSR6LehqfZYF0U04oSEQwis2eKeMzmVUjLxCiE3BTxDSskJBJ0bgKtYSlMg29XdGt2hvZ2Ez8LdU8Uy3PEKYzQANo3u1GulPyejf4RdQSwECHgMKAAAAAABchodHAAAAAAAAAAAAAAAAAwAYAAAAAAAAABAA7UEAAAAAaGMvVVQFAAPfqmVWdXgLAAEEVufcXgQBAtheUEsBAh4DFAAAAAgA/HSHR5D2aIDTAAAAVAEAABAAGAAAAAAAAQAAAKSBPQAAAGhjL2hkZnMtc2l0ZS54bWxVVAUAAyyMZVZ1eAsAAQRW59xeBAEC2F5QSwECHgMUAAAACABchodHsS8LJJsAAADSAAAAEAAYAAAAAAABAAAApIFaAQAAaGMvY29yZS1zaXRlLnhtbFVUBQAD36plVnV4CwABBFbn3F4EAQLYXlBLBQYAAAAAAwADAPUAAAA/AgAAAAA='
   keytab: fake
 store:
   path: ${broker.store.znode:/broker/hdfs}
+  user: ${system.user:test}
+  password: ${system.user.password:test1}
 cf:
-  servicename: fake
-  serviceid: fake
-  baseId: fake
-metadata:
-  imageUrl: ${IMAGE_URL:}
+  catalog:
+    serviceName: ${cf.catalog.servicename:hdfs}
+    serviceId: ${cf.catalog.serviceid:hdfs}
+    serviceDescription: fake_desc
+    baseId: ${BASE_GUID:fakeBaseGuid}
+    plans:
+      - id: bare-plan
+        name: bare
+        description: bare
+        free: true
+      - id: shared-plan
+        name: shared
+        description: shared
+        free: true
+        provisioning: true
+      - id: encrypted-plan
+        name: encrypted
+        description: encrypted
+        free: true
+        provisioning: true
+      - id: multitenant-plan
+        name: multitenant
+        description: multitenant
+        free: true
+        provisioning: false
+    metadata:
+      imageUrl: ${IMAGE_URL:}

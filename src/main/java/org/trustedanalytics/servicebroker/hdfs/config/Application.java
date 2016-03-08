@@ -18,8 +18,12 @@ package org.trustedanalytics.servicebroker.hdfs.config;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
+import org.trustedanalytics.servicebroker.framework.annotations.EnableServiceBrokerConfig;
+import org.trustedanalytics.servicebroker.framework.annotations.EnableZookeeperBrokerStore;
 
 @EnableAutoConfiguration
+@EnableServiceBrokerConfig
+@EnableZookeeperBrokerStore
 @ComponentScan
 public class Application {
 

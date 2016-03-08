@@ -1,3 +1,4 @@
+---
 security:
 #password cf client will use when interacting with broker
   user.password: ${user.password}
@@ -12,14 +13,35 @@ hdfs:
   keytab: ${hdfs.keytab:{}}
 store:
   #optional parameter to configure zookeeper-store
-  path: ${broker.store.znode:/broker/hdfs/metadata}
+  path: ${broker.store.znode:/broker/hdfs}
+  user: ${system.user}
+  password: ${system.user.password}
 cf:
-  #name of service in cloud foundry catalog
-  servicename: ${cf.catalog.servicename:hdfs}
-  #id of service in cloud foundry catalog
-  serviceid: ${cf.catalog.serviceid:hdfs}
-  #id of base plan in cloud foundry catalog
-  baseId: ${BASE_GUID:}
-metadata:
-  #encoded image file viewed in marketplace
-  imageUrl: ${IMAGE_URL:}
+  catalog:
+    serviceName: ${cf.catalog.servicename:hdfs}
+    serviceId: ${cf.catalog.serviceid:hdfs}
+    serviceDescription: fake_desc
+    baseId: ${BASE_GUID:}
+    plans:
+      - id: bare-plan
+        name: bare
+        description: bare
+        free: true
+        provisioning: false
+      - id: shared-plan
+        name: shared
+        description: shared
+        free: true
+        provisioning: true
+      - id: encrypted-plan
+        name: encrypted
+        description: encrypted
+        free: true
+        provisioning: true
+      - id: multitenant-plan
+        name: multitenant
+        description: multitenant
+        free: true
+        provisioning: false
+    metadata:
+      imageUrl: ${IMAGE_URL:}

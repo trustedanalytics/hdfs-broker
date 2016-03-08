@@ -15,11 +15,8 @@
  */
 package org.trustedanalytics.servicebroker.hdfs.config;
 
-public final class Qualifiers {
-  public static final String SERVICE_INSTANCE = "serviceInstance";
-  public static final String SERVICE_INSTANCE_BINDING = "serviceInstanceBinding";
-  public static final String USER = "user";
-  public static final String SUPER_USER = "superUser";
-
-  private Qualifiers() {}
+public class HdfsConstants {
+  public static final String HADOOP_DEFAULT_FS = "fs.defaultFS";
+  public static final String USER_QUALIFIER = "user";
+  public static final String SUPER_USER_QUALIFIER = "superUser";
 }

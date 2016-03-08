@@ -18,33 +18,35 @@ package org.trustedanalytics.servicebroker.hdfs.integration;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
+import static org.trustedanalytics.servicebroker.test.cloudfoundry.CfModelsFactory.getCreateBindingRequest;
+import static org.trustedanalytics.servicebroker.test.cloudfoundry.CfModelsFactory.getCreateInstanceRequest;
+import static org.trustedanalytics.servicebroker.test.cloudfoundry.CfModelsFactory.getDeleteBindingRequest;
+import static org.trustedanalytics.servicebroker.test.cloudfoundry.CfModelsFactory.getDeleteInstanceRequest;
+import static org.trustedanalytics.servicebroker.test.cloudfoundry.CfModelsFactory.getServiceInstance;
 
-import java.io.FileNotFoundException;
-import java.io.IOError;
 import java.io.IOException;
 import java.util.UUID;
 
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.zookeeper.KeeperException;
-import org.cloudfoundry.community.servicebroker.model.*;
+import org.cloudfoundry.community.servicebroker.model.CreateServiceInstanceBindingRequest;
+import org.cloudfoundry.community.servicebroker.model.CreateServiceInstanceRequest;
+import org.cloudfoundry.community.servicebroker.model.DeleteServiceInstanceBindingRequest;
+import org.cloudfoundry.community.servicebroker.model.DeleteServiceInstanceRequest;
+import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
 import org.cloudfoundry.community.servicebroker.service.ServiceInstanceBindingService;
 import org.cloudfoundry.community.servicebroker.service.ServiceInstanceService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+
 import org.trustedanalytics.cfbroker.store.zookeeper.service.ZookeeperClient;
 import org.trustedanalytics.servicebroker.hdfs.config.Application;
 import org.trustedanalytics.servicebroker.hdfs.config.ExternalConfiguration;
 import org.trustedanalytics.servicebroker.hdfs.integration.config.HdfsLocalConfiguration;
-import org.trustedanalytics.servicebroker.hdfs.integration.config.store.ZkStoreTestUtils;
-import org.trustedanalytics.servicebroker.hdfs.integration.utils.CfModelsFactory;
-import org.trustedanalytics.servicebroker.hdfs.integration.utils.RequestFactory;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = {Application.class, HdfsLocalConfiguration.class})
@@ -66,19 +68,15 @@ public class CreateDeleteThenGetTest {
   private ServiceInstanceBindingService bindingBean;
 
   @Test
-  public void deleteServiceInstance_instanceCreated_getReturnsNull() throws Exception {
-
-    String serviceInstanceId = UUID.randomUUID().toString();
-
+  public void deleteServiceInstancePlanShared_instanceCreated_getReturnsNull() throws Exception {
     //arrange
-    ServiceInstance instance = CfModelsFactory.getServiceInstance(serviceInstanceId);
-    CreateServiceInstanceRequest request = getCreateServiceInstanceRequest(instance);
+    String serviceInstanceId = UUID.randomUUID().toString();
+    ServiceInstance instance = getServiceInstance(serviceInstanceId, "fakeBaseGuid-shared-plan");
+    CreateServiceInstanceRequest request = getCreateInstanceRequest(instance);
     serviceBean.createServiceInstance(request);
 
     //act
-    DeleteServiceInstanceRequest deleteRequest =
-        new DeleteServiceInstanceRequest(instance.getServiceInstanceId(),
-            instance.getServiceDefinitionId(), instance.getPlanId());
+    DeleteServiceInstanceRequest deleteRequest = getDeleteInstanceRequest(instance);
     serviceBean.deleteServiceInstance(deleteRequest);
 
     //assert
@@ -87,35 +85,21 @@ public class CreateDeleteThenGetTest {
   }
 
   @Test(expected = IOException.class)
-  public void deleteBinding_bindingCreated_bindingDeletedFromFileSystem() throws Exception {
-
+  public void deleteBindingPlanShared_bindingCreated_bindingDeletedFromFileSystem() throws Exception {
+    //arrange
     String bindingId = UUID.randomUUID().toString();
     String serviceInstanceId = UUID.randomUUID().toString();
+    ServiceInstance instance = getServiceInstance(serviceInstanceId, "fakeBaseGuid-shared-plan");
+    serviceBean.createServiceInstance(getCreateInstanceRequest(instance));
 
-    ServiceInstance instance = CfModelsFactory.getServiceInstance(serviceInstanceId);
-    serviceBean.createServiceInstance(getCreateServiceInstanceRequest(instance));
-
-    //arrange
-    CreateServiceInstanceBindingRequest bindReq =
-        new CreateServiceInstanceBindingRequest(instance.getServiceDefinitionId(), "planId",
-            "appGuid").withServiceInstanceId(serviceInstanceId).withBindingId(bindingId);
+    CreateServiceInstanceBindingRequest bindReq = getCreateBindingRequest(serviceInstanceId).withBindingId(bindingId);
     bindingBean.createServiceInstanceBinding(bindReq);
 
     //act
-    DeleteServiceInstanceBindingRequest deleteRequest =
-        new DeleteServiceInstanceBindingRequest(bindReq.getBindingId(),
-            CfModelsFactory.getServiceInstance(serviceInstanceId),
-            bindReq.getServiceDefinitionId(), bindReq.getPlanId());
+    DeleteServiceInstanceBindingRequest deleteRequest = getDeleteBindingRequest(serviceInstanceId, bindReq);
     bindingBean.deleteServiceInstanceBinding(deleteRequest);
 
     //assert
-    zkClient.getZNode(serviceInstanceId  + "/" + bindingId);
-  }
-
-  private CreateServiceInstanceRequest getCreateServiceInstanceRequest(ServiceInstance instance) {
-    return new CreateServiceInstanceRequest(CfModelsFactory.getServiceDefinition().getId(),
-        instance.getPlanId(), instance.getOrganizationGuid(), instance.getSpaceGuid())
-        .withServiceInstanceId(instance.getServiceInstanceId()).withServiceDefinition(
-            CfModelsFactory.getServiceDefinition());
+    zkClient.getZNode(serviceInstanceId + "/" + bindingId);
   }
 }

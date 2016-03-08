@@ -15,9 +15,14 @@
  */
 package org.trustedanalytics.servicebroker.hdfs.integration;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.core.StringEndsWith.endsWith;
 import static org.junit.Assert.assertTrue;
+import static org.springframework.test.util.MatcherAssertionErrors.assertThat;
+import static org.trustedanalytics.servicebroker.test.cloudfoundry.CfModelsAssert.deeplyEqualTo;
+import static org.trustedanalytics.servicebroker.test.cloudfoundry.CfModelsFactory.getCreateBindingRequest;
+import static org.trustedanalytics.servicebroker.test.cloudfoundry.CfModelsFactory.getCreateInstanceRequest;
+import static org.trustedanalytics.servicebroker.test.cloudfoundry.CfModelsFactory.getServiceInstance;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -39,23 +44,20 @@ import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.trustedanalytics.cfbroker.store.hdfs.helper.HdfsPathTemplateUtils;
 
+import org.trustedanalytics.cfbroker.store.hdfs.helper.HdfsPathTemplateUtils;
 import org.trustedanalytics.cfbroker.store.zookeeper.service.ZookeeperClient;
 import org.trustedanalytics.servicebroker.hdfs.config.Application;
 import org.trustedanalytics.servicebroker.hdfs.config.ExternalConfiguration;
 import org.trustedanalytics.servicebroker.hdfs.integration.config.HdfsLocalConfiguration;
-import org.trustedanalytics.servicebroker.hdfs.integration.config.kerberos.KerberosLocalConfiguration;
-import org.trustedanalytics.servicebroker.hdfs.integration.config.store.ZkLocalConfiguration;
-import org.trustedanalytics.servicebroker.hdfs.integration.config.store.ZkStoreTestUtils;
-import org.trustedanalytics.servicebroker.hdfs.integration.utils.CfModelsAssert;
-import org.trustedanalytics.servicebroker.hdfs.integration.utils.CfModelsFactory;
+import org.trustedanalytics.servicebroker.hdfs.integration.config.KerberosLocalConfiguration;
+import org.trustedanalytics.servicebroker.hdfs.integration.config.ZkLocalConfiguration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = {Application.class, HdfsLocalConfiguration.class,
-    ZkLocalConfiguration.class, KerberosLocalConfiguration.class})
+@SpringApplicationConfiguration(classes = {Application.class, HdfsLocalConfiguration.class, ZkLocalConfiguration.class,
+    KerberosLocalConfiguration.class})
 @WebAppConfiguration
 @IntegrationTest("server.port=0")
 @ActiveProfiles("integration-test")
@@ -80,77 +82,61 @@ public class CreateTest {
   private ServiceInstanceBindingService bindingBean;
 
   @Test
-  public void createServiceInstance_validRequest_metadataSavedAndUserDirProvisioned()
-      throws Exception {
-
-    String testId = UUID.randomUUID().toString();
-
+  public void createInstancePlanShared_validRequest_metadataSavedAndUserDirProvisioned() throws Exception {
     //arrange
-    ServiceInstance instance = CfModelsFactory.getServiceInstance(testId);
-    CreateServiceInstanceRequest request = getCreateServiceInstanceRequest(instance);
+    String testId = UUID.randomUUID().toString();
+    ServiceInstance instance = getServiceInstance(testId, "fakeBaseGuid-shared-plan");
+    CreateServiceInstanceRequest request = getCreateInstanceRequest(instance);
 
     //act
     serviceBean.createServiceInstance(request);
 
     //assert
     assertTrue(userDirectoryProvisioned(testId, instance.getOrganizationGuid()));
-    ServiceInstance savedInstance = getSavedInstanceFromFileSystem(testId);
-    CfModelsAssert.serviceInstancesAreEqual(savedInstance, instance);
+    ServiceInstance savedInstance = getSavedInstanceFromZooKeeper(testId);
+    assertThat(savedInstance, deeplyEqualTo(instance));
   }
 
   @Test
-  public void createBinding_validRequest_bindingSavedOnFileSystem() throws Exception {
+  public void createBindingPlanShared_validRequest_credentialsReturnedBindingSavedOnFileSystem() throws Exception {
 
     String serviceInstanceId = UUID.randomUUID().toString();
     String bindingId = UUID.randomUUID().toString();
-    ServiceInstance instance = CfModelsFactory.getServiceInstance(serviceInstanceId);
+    ServiceInstance instance = getServiceInstance(serviceInstanceId, "fakeBaseGuid-shared-plan");
 
-    CreateServiceInstanceRequest request = getCreateServiceInstanceRequest(instance);
+    CreateServiceInstanceRequest request = getCreateInstanceRequest(instance);
     serviceBean.createServiceInstance(request);
 
     //arrange
     CreateServiceInstanceBindingRequest bindReq =
-        new CreateServiceInstanceBindingRequest(instance.getServiceDefinitionId(), "planId",
-            "appGuid").withBindingId(bindingId).withServiceInstanceId(serviceInstanceId);
+        getCreateBindingRequest(serviceInstanceId, instance.getPlanId()).withBindingId(bindingId);
 
     //act
-    ServiceInstanceBinding serviceInstanceBinding =
-        bindingBean.createServiceInstanceBinding(bindReq);
+    ServiceInstanceBinding serviceInstanceBinding = bindingBean.createServiceInstanceBinding(bindReq);
     String userDirUri = (String) serviceInstanceBinding.getCredentials().get("uri");
 
     //assert
-    assertThat(userDirUri,
-        endsWith(getUserDirectoryPath(serviceInstanceId, instance.getOrganizationGuid())));
-    CreateServiceInstanceBindingRequest savedRequest =
-        getSavedBindReqFromFileSystem(serviceInstanceId, bindingId);
-    CfModelsAssert.bindingRequestsAreEqual(savedRequest, bindReq);
+    assertThat(userDirUri, endsWith(getUserDirectoryPath(serviceInstanceId, instance.getOrganizationGuid())));
+    CreateServiceInstanceBindingRequest savedRequest = getSavedBindReqFromZooKeeper(serviceInstanceId, bindingId);
+    assertThat(savedRequest, equalTo(bindReq));
   }
 
-  private boolean userDirectoryProvisioned(String serviceInstanceId, String organizationId)
-      throws IOException {
+  private boolean userDirectoryProvisioned(String serviceInstanceId, String organizationId) throws IOException {
     return userFileSystem.exists(new Path(getUserDirectoryPath(serviceInstanceId, organizationId)));
   }
 
   private String getUserDirectoryPath(String serviceInstanceId, String organizationId) {
-    return HdfsPathTemplateUtils.fill(conf.getUserspaceChroot(), serviceInstanceId, organizationId)
-        + "/";
+    return HdfsPathTemplateUtils.fill(conf.getUserspaceChroot(), serviceInstanceId, organizationId) + "/";
   }
 
-  private ServiceInstance getSavedInstanceFromFileSystem(String id) throws IOException {
+  private ServiceInstance getSavedInstanceFromZooKeeper(String id) throws IOException {
     byte[] savedBytes = zkClient.getZNode(id);
     return mapper.readValue(savedBytes, ServiceInstance.class);
   }
 
-  private CreateServiceInstanceBindingRequest getSavedBindReqFromFileSystem(String serviceId,
-      String bindingId) throws IOException {
+  private CreateServiceInstanceBindingRequest getSavedBindReqFromZooKeeper(String serviceId, String bindingId)
+      throws IOException {
     byte[] savedBytes = zkClient.getZNode(serviceId + "/" + bindingId);
     return mapper.readValue(savedBytes, CreateServiceInstanceBindingRequest.class);
-  }
-
-  private CreateServiceInstanceRequest getCreateServiceInstanceRequest(ServiceInstance instance) {
-    return new CreateServiceInstanceRequest(CfModelsFactory.getServiceDefinition().getId(),
-        instance.getPlanId(), instance.getOrganizationGuid(), instance.getSpaceGuid())
-        .withServiceInstanceId(instance.getServiceInstanceId()).withServiceDefinition(
-            CfModelsFactory.getServiceDefinition());
   }
 }

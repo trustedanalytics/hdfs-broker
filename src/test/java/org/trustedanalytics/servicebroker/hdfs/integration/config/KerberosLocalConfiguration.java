@@ -13,19 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.trustedanalytics.servicebroker.hdfs.integration.config.kerberos;
+package org.trustedanalytics.servicebroker.hdfs.integration.config;
 
 import java.io.IOException;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.test.context.ActiveProfiles;
-import org.trustedanalytics.hadoop.config.client.AppConfiguration;
-import org.trustedanalytics.hadoop.config.client.Configurations;
-import org.trustedanalytics.hadoop.config.client.Property;
-import org.trustedanalytics.hadoop.config.client.ServiceInstanceConfiguration;
-import org.trustedanalytics.servicebroker.hdfs.config.kerberos.KerberosProperties;
+import org.trustedanalytics.servicebroker.framework.kerberos.KerberosProperties;
 
 @Configuration
 public class KerberosLocalConfiguration {
@@ -33,6 +28,6 @@ public class KerberosLocalConfiguration {
   @Bean
   @Profile("integration-test")
   public KerberosProperties getKerberosProperties() throws IOException {
-    return new KerberosProperties("kdc", "realm", "test", "test");
+    return new KerberosProperties("kdc", "realm", "cacert", false);
   }
 }

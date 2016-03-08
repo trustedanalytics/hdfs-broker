@@ -13,18 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.trustedanalytics.servicebroker.hdfs.helper;
+package org.trustedanalytics.servicebroker.hdfs.plans.binding;
 
-public class LoggerHelper {
+import org.trustedanalytics.servicebroker.framework.Credentials;
 
-  private LoggerHelper() {}
-
-  public static String getParamsAsString(String methodName, Object... params) {
-    StringBuilder builder = new StringBuilder(methodName);
-    builder.append(" : ");
-    for (Object param : params) {
-      builder.append((param == null) ? "NULL" : param.toString()).append(", ");
-    }
-    return builder.toString();
+public class HdfsBindingClientFactory {
+  public static HdfsBindingClient create(Credentials credentials, String userspacePathTemplate){
+    return new HdfsBindingClient(credentials, userspacePathTemplate);
   }
 }

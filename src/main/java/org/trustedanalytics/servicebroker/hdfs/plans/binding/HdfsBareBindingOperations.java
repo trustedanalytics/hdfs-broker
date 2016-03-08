@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.trustedanalytics.servicebroker.hdfs.config;
+package org.trustedanalytics.servicebroker.hdfs.plans.binding;
 
+import java.util.Map;
 
-public final class Profiles {
-  public static final String CLOUD = "cloud";
-
-  private Profiles() {}
+public interface HdfsBareBindingOperations {
+  Map<String, Object> createCredentialsMap();
 }

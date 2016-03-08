@@ -5,13 +5,15 @@ applications:
   host: hdfs-broker
   path: target/hdfs-broker-${version}.jar
   services:
-  - kerberos-service
+  - kerberos-instance
   - zookeeper-for-hdfs
   env:
     USER_PASSWORD: "placeholder"
     HADOOP_PROVIDED_ZIP: "placeholder"
     HDFS_KEYTAB: "placeholder"
     HDFS_USER: hdfs
+    SYSTEM_USER: "placeholder"
+    SYSTEM_USER_PASSWORD: "placeholder"
     CF_CATALOG_SERVICENAME: hdfs
     CF_CATALOG_SERVICEID: hdfs
     SPRING_PROFILES_ACTIVE: cloud

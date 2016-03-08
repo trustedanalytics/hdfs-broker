@@ -23,11 +23,20 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ExternalConfiguration {
 
+  @Value("${store.user}")
+  @NotNull
+  private String user;
+
+  @Value("${store.password}")
+  @NotNull
+  private String password;
+
   @Value("${hdfs.userspace.chroot}")
   @NotNull
   private String userspaceChroot;
 
   @Value("${hdfs.provided.zip}")
+  @NotNull
   private String hdfsProvidedZip;
 
   @Value("${hdfs.superuser}")
@@ -37,26 +46,6 @@ public class ExternalConfiguration {
   @Value("${hdfs.keytab}")
   @NotNull
   private String hdfsSuperuserKeytab;
-
-  @Value("${store.path}")
-  @NotNull
-  private String brokerStorePath;
-
-  @Value("${cf.servicename}")
-  @NotNull
-  private String cfServiceName;
-
-  @Value("${cf.serviceid}")
-  @NotNull
-  private String cfServiceId;
-
-  @Value("${cf.baseId}")
-  @NotNull
-  private String cfBaseId;
-
-  @Value("${metadata.imageUrl}")
-  @NotNull
-  private String imageUrl;
 
   public String getUserspaceChroot() {
     return userspaceChroot;
@@ -82,51 +71,27 @@ public class ExternalConfiguration {
     this.hdfsSuperuserKeytab = keytab;
   }
 
-  public String getCfServiceName() {
-    return cfServiceName;
-  }
-
-  public void setCfServiceName(String cfServiceName) {
-    this.cfServiceName = cfServiceName;
-  }
-
-  public String getCfServiceId() {
-    return cfServiceId;
-  }
-
-  public void setCfServiceId(String cfServiceId) {
-    this.cfServiceId = cfServiceId;
-  }
-
-  public String getCfBaseId() {
-    return cfBaseId;
-  }
-
-  public void setCfBaseId(String cfBaseId) {
-    this.cfBaseId = cfBaseId;
-  }
-
-  public String getImageUrl() {
-    return imageUrl;
-  }
-
-  public void setImageUrl(String imageUrl) {
-    this.imageUrl = imageUrl;
-  }
-
-  public String getBrokerStorePath() {
-    return brokerStorePath;
-  }
-
-  public void setBrokerStorePath(String brokerStorePath) {
-    this.brokerStorePath = brokerStorePath;
-  }
-
   public String getHdfsSuperuser() {
     return hdfsSuperuser;
   }
 
   public void setHdfsSuperuser(String hdfsSuperuser) {
     this.hdfsSuperuser = hdfsSuperuser;
+  }
+
+  public String getUser() {
+    return user;
+  }
+
+  public void setUser(String user) {
+    this.user = user;
+  }
+
+  public String getPassword() {
+    return password;
+  }
+
+  public void setPassword(String password) {
+    this.password = password;
   }
 }

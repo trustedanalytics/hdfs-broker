@@ -13,22 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.trustedanalytics.servicebroker.hdfs.util;
+package org.trustedanalytics.servicebroker.hdfs.plans.provisioning;
 
-import com.google.common.base.Strings;
+import org.trustedanalytics.cfbroker.store.hdfs.service.HdfsClient;
 
-public class HdfsPlanHelper {
-
-    public static final String ENCRYPTED_KEY = "-encrypted";
-    public static final String TEMPLATE_KEY = "-multitenant";
-
-    private HdfsPlanHelper() {}
-
-    public static boolean isEncrypted(String planId) {
-        return Strings.nullToEmpty(planId).toLowerCase().contains(ENCRYPTED_KEY);
-    }
-
-    public static boolean isMultitenant(String planId) {
-        return Strings.nullToEmpty(planId).toLowerCase().contains(TEMPLATE_KEY);
-    }
+public class HdfsProvisioningClientFactory {
+  public static HdfsProvisioningClient create(HdfsClient hdfsClient, HdfsClient encryptedHdfsClient,
+      String userspacePathTemplate) {
+    return new HdfsProvisioningClient(hdfsClient, encryptedHdfsClient, userspacePathTemplate);
+  }
 }
