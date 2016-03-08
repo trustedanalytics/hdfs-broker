@@ -282,8 +282,8 @@
         </dependency>
         <dependency>
             <groupId>org.trustedanalytics</groupId>
-            <artifactId>broker-framework</artifactId>
-            <version>0.4.3</version>
+            <artifactId>broker-lib</artifactId>
+            <version>0.4.0</version>
         </dependency>
         <dependency>
             <groupId>org.trustedanalytics</groupId>
