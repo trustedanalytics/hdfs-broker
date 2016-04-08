@@ -20,7 +20,7 @@ cf:
   catalog:
     serviceName: ${cf.catalog.servicename:hdfs}
     serviceId: ${cf.catalog.serviceid:hdfs}
-    serviceDescription: fake_desc
+    serviceDescription: HDFS service for creating directories on hadoop distributed file system.
     baseId: ${BASE_GUID:}
     plans:
       - id: bare-plan
