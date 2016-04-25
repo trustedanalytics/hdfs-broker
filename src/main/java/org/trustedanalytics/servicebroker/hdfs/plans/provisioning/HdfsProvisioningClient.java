@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.UUID;
 
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.permission.FsAction;
+import org.apache.hadoop.fs.permission.FsPermission;
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -27,15 +29,19 @@ import org.trustedanalytics.cfbroker.store.hdfs.helper.HdfsPathTemplateUtils;
 import org.trustedanalytics.cfbroker.store.hdfs.service.HdfsClient;
 
 @Component
-class HdfsProvisioningClient
-    implements HdfsDirectoryProvisioningOperations, HdfsPlanEncryptedDirectoryProvisioningOperations {
+class HdfsProvisioningClient implements HdfsDirectoryProvisioningOperations,
+    HdfsPlanEncryptedDirectoryProvisioningOperations {
+
+  private static final FsPermission FS_PERMISSION = new FsPermission(FsAction.ALL, FsAction.ALL,
+      FsAction.NONE);
 
   private final HdfsClient hdfsClient;
   private final HdfsClient encryptedHdfsClient;
   private final String userspacePathTemplate;
 
   @Autowired
-  public HdfsProvisioningClient(HdfsClient hdfsClient, HdfsClient encryptedHdfsClient, String userspacePathTemplate) {
+  public HdfsProvisioningClient(HdfsClient hdfsClient, HdfsClient encryptedHdfsClient,
+      String userspacePathTemplate) {
     this.hdfsClient = hdfsClient;
     this.encryptedHdfsClient = encryptedHdfsClient;
     this.userspacePathTemplate = userspacePathTemplate;
@@ -46,6 +52,7 @@ class HdfsProvisioningClient
     try {
       String path = HdfsPathTemplateUtils.fill(userspacePathTemplate, instanceId, orgId);
       hdfsClient.createDir(path);
+      hdfsClient.setPermission(path, FS_PERMISSION);
     } catch (IOException e) {
       throw new ServiceBrokerException("Unable to provision directory for: " + instanceId, e);
     }
@@ -57,7 +64,8 @@ class HdfsProvisioningClient
       String path = HdfsPathTemplateUtils.fill(userspacePathTemplate, instanceId, orgId);
       encryptedHdfsClient.createKeyAndEncryptedZone(instanceId.toString(), new Path(path));
     } catch (IOException e) {
-      throw new ServiceBrokerException("Unable to provision encrypted directory for: " + instanceId, e);
+      throw new ServiceBrokerException(
+          "Unable to provision encrypted directory for: " + instanceId, e);
     }
   }
 }

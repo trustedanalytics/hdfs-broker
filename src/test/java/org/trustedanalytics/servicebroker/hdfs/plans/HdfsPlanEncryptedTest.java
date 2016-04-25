@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.util.Map;
 
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.permission.FsAction;
+import org.apache.hadoop.fs.permission.FsPermission;
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
 import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
 import org.junit.Before;
@@ -40,6 +42,9 @@ import org.trustedanalytics.servicebroker.hdfs.plans.provisioning.HdfsProvisioni
 
 @RunWith(MockitoJUnitRunner.class)
 public final class HdfsPlanEncryptedTest extends HdfsPlanTestBase {
+
+  private static final FsPermission FS_PERMISSION = new FsPermission(FsAction.ALL, FsAction.ALL,
+      FsAction.NONE);
 
   private HdfsPlanEncrypted planUnderTest;
 
@@ -65,6 +70,7 @@ public final class HdfsPlanEncryptedTest extends HdfsPlanTestBase {
     verify(hdfsClient).createDir(getDirectoryPathToProvision(serviceInstance));
     verify(encryptedHdfsClient).createKeyAndEncryptedZone(serviceInstance.getServiceInstanceId(),
         new Path(getDirectoryPathToProvision(serviceInstance)));
+    verify(hdfsClient).setPermission(getDirectoryPathToProvision(serviceInstance), FS_PERMISSION);
     verifyNoMoreInteractions(hdfsClient, encryptedHdfsClient);
   }
 
