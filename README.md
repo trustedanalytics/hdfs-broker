@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/trustedanalytics/hdfs-broker.svg?branch=master)](https://travis-ci.org/trustedanalytics/hdfs-broker)
+[![Dependency Status](https://www.versioneye.com/user/projects/5723690aba37ce0031fc1e1d/badge.svg?style=flat)](https://www.versioneye.com/user/projects/5723690aba37ce0031fc1e1d)
+
 hdfs-broker
 ===========
 
