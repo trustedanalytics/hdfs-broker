@@ -16,7 +16,6 @@
 package org.trustedanalytics.servicebroker.hdfs.plans;
 
 import java.util.Map;
-import java.util.UUID;
 
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
 import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
@@ -25,7 +24,6 @@ import org.springframework.stereotype.Component;
 
 import org.trustedanalytics.servicebroker.framework.service.ServicePlanDefinition;
 import org.trustedanalytics.servicebroker.hdfs.plans.binding.HdfsBareBindingOperations;
-import org.trustedanalytics.servicebroker.hdfs.plans.binding.HdfsSpecificOrgBindingOperations;
 
 @Component("bare")
 class HdfsPlanBare implements ServicePlanDefinition {
