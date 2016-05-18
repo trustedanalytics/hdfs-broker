@@ -30,20 +30,23 @@ import org.trustedanalytics.cfbroker.store.hdfs.service.HdfsClient;
 
 @Component
 class HdfsProvisioningClient implements HdfsDirectoryProvisioningOperations,
-    HdfsPlanEncryptedDirectoryProvisioningOperations {
+    HdfsPlanEncryptedDirectoryProvisioningOperations{
 
   private static final FsPermission FS_PERMISSION = new FsPermission(FsAction.ALL, FsAction.ALL,
       FsAction.NONE);
 
+  private static final FsPermission FS_USER_PERMISSION = new FsPermission(FsAction.ALL, FsAction.NONE,
+      FsAction.NONE);
+
   private final HdfsClient hdfsClient;
-  private final HdfsClient encryptedHdfsClient;
+  private final HdfsClient superUserHdfsClient;
   private final String userspacePathTemplate;
 
   @Autowired
   public HdfsProvisioningClient(HdfsClient hdfsClient, HdfsClient encryptedHdfsClient,
       String userspacePathTemplate) {
     this.hdfsClient = hdfsClient;
-    this.encryptedHdfsClient = encryptedHdfsClient;
+    this.superUserHdfsClient = encryptedHdfsClient;
     this.userspacePathTemplate = userspacePathTemplate;
   }
 
@@ -59,10 +62,22 @@ class HdfsProvisioningClient implements HdfsDirectoryProvisioningOperations,
   }
 
   @Override
+  public void provisionDirectory(UUID instanceId, UUID orgId, UUID owner) throws ServiceBrokerException {
+    try {
+      String path = HdfsPathTemplateUtils.fill(userspacePathTemplate, instanceId, orgId);
+      hdfsClient.createDir(path);
+      hdfsClient.setPermission(path, FS_USER_PERMISSION);
+      superUserHdfsClient.setOwner(path, owner.toString(), orgId.toString());
+    } catch (IOException e) {
+      throw new ServiceBrokerException("Unable to provision directory for: " + instanceId, e);
+    }
+  }
+
+  @Override
   public void createEncryptedZone(UUID instanceId, UUID orgId) throws ServiceBrokerException {
     try {
       String path = HdfsPathTemplateUtils.fill(userspacePathTemplate, instanceId, orgId);
-      encryptedHdfsClient.createKeyAndEncryptedZone(instanceId.toString(), new Path(path));
+      superUserHdfsClient.createKeyAndEncryptedZone(instanceId.toString(), new Path(path));
     } catch (IOException e) {
       throw new ServiceBrokerException(
           "Unable to provision encrypted directory for: " + instanceId, e);

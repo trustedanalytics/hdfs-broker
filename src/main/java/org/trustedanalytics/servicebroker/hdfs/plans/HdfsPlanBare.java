@@ -21,7 +21,6 @@ import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException
 import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import org.trustedanalytics.servicebroker.framework.service.ServicePlanDefinition;
 import org.trustedanalytics.servicebroker.hdfs.plans.binding.HdfsBareBindingOperations;
 

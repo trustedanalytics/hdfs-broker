@@ -16,6 +16,7 @@
 package org.trustedanalytics.servicebroker.hdfs.plans;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
@@ -23,7 +24,6 @@ import org.cloudfoundry.community.servicebroker.exception.ServiceInstanceExistsE
 import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import org.trustedanalytics.servicebroker.framework.service.ServicePlanDefinition;
 import org.trustedanalytics.servicebroker.hdfs.plans.binding.HdfsSpecificOrgBindingOperations;
 import org.trustedanalytics.servicebroker.hdfs.plans.provisioning.HdfsPlanEncryptedDirectoryProvisioningOperations;
@@ -42,7 +42,8 @@ class HdfsPlanEncrypted implements ServicePlanDefinition {
   }
 
   @Override
-  public void provision(ServiceInstance serviceInstance) throws ServiceInstanceExistsException, ServiceBrokerException {
+  public void provision(ServiceInstance serviceInstance, Optional<Map<String, Object>> parameters)
+      throws ServiceInstanceExistsException, ServiceBrokerException {
     UUID instanceId = UUID.fromString(serviceInstance.getServiceInstanceId());
     UUID orgId = UUID.fromString(serviceInstance.getOrganizationGuid());
     hdfsOperations.provisionDirectory(instanceId, orgId);

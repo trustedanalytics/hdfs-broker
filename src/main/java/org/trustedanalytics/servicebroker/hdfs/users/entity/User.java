@@ -13,13 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.trustedanalytics.servicebroker.hdfs.plans.provisioning;
+package org.trustedanalytics.servicebroker.hdfs.users.entity;
 
-import java.util.UUID;
+import lombok.Data;
 
-import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public interface HdfsDirectoryProvisioningOperations {
-  void provisionDirectory(UUID instanceId, UUID orgId) throws ServiceBrokerException;
-  void provisionDirectory(UUID instanceId, UUID orgId, UUID Owner) throws ServiceBrokerException;
+@Data
+public final class User {
+
+  private final String username;
+
+  @JsonCreator
+  public User(@JsonProperty("username") String username) {
+    this.username = username;
+  }
+
 }

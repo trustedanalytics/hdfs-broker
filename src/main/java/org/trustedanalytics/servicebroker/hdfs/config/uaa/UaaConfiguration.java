@@ -13,46 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.trustedanalytics.servicebroker.hdfs.config;
+package org.trustedanalytics.servicebroker.hdfs.config.uaa;
 
 import javax.validation.constraints.NotNull;
 
 import lombok.Getter;
 import lombok.Setter;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class ExternalConfiguration {
+public class UaaConfiguration {
 
-  @Value("${store.user}")
+  @Value("${uaa.uri}")
   @NotNull
   @Getter @Setter
-  private String user;
+  private String uri;
 
-  @Value("${store.password}")
+  @Value("${uaa.tokenUri}")
   @NotNull
   @Getter @Setter
-  private String password;
+  private String tokenUri;
 
-  @Value("${hdfs.userspace.chroot}")
+  @Value("${uaa.clientId}")
   @NotNull
   @Getter @Setter
-  private String userspaceChroot;
+  private String clientId;
 
-  @Value("${hdfs.provided.zip}")
+  @Value("${uaa.clientSecret}")
   @NotNull
   @Getter @Setter
-  private String hdfsProvidedZip;
-
-  @Value("${hdfs.superuser}")
-  @NotNull
-  @Getter @Setter
-  private String hdfsSuperuser;
-
-  @Value("${hdfs.keytab}")
-  @NotNull
-  @Getter @Setter
-  private String hdfsSuperuserKeytab;
-
+  private String clientSecret;
 }

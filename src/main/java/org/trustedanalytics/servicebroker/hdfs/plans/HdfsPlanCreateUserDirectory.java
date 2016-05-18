@@ -15,32 +15,48 @@
  */
 package org.trustedanalytics.servicebroker.hdfs.plans;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.ObjDoubleConsumer;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
 import org.cloudfoundry.community.servicebroker.exception.ServiceInstanceExistsException;
 import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import org.trustedanalytics.servicebroker.framework.service.ServicePlanDefinition;
+import org.trustedanalytics.servicebroker.framework.store.CredentialsStore;
 import org.trustedanalytics.servicebroker.hdfs.plans.binding.HdfsSpecificOrgBindingOperations;
 import org.trustedanalytics.servicebroker.hdfs.plans.provisioning.HdfsDirectoryProvisioningOperations;
+import org.trustedanalytics.servicebroker.hdfs.users.GroupMappingOperations;
 
-@Component("shared")
-class HdfsPlanShared implements ServicePlanDefinition {
+import com.google.common.collect.ImmutableMap;
+
+@Component("create-user-directory")
+class HdfsPlanCreateUserDirectory implements ServicePlanDefinition {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(HdfsPlanCreateUserDirectory.class);
+  private static final String USER = "user";
+  private static final String PASSWORD = "password";
+  private static final String URI_KEY = "uri";
 
   private final HdfsDirectoryProvisioningOperations hdfsOperations;
   private final HdfsSpecificOrgBindingOperations bindingOperations;
+  private final CredentialsStore credentialsStore;
+  private final GroupMappingOperations groupMappingOperations;
 
   @Autowired
-  public HdfsPlanShared(HdfsDirectoryProvisioningOperations hdfsOperations,
-      HdfsSpecificOrgBindingOperations bindingOperations) {
+  public HdfsPlanCreateUserDirectory(HdfsDirectoryProvisioningOperations hdfsOperations,
+      HdfsSpecificOrgBindingOperations bindingOperations,
+      GroupMappingOperations groupMappingOperations, CredentialsStore zookeeperCredentialsStore) {
     this.hdfsOperations = hdfsOperations;
     this.bindingOperations = bindingOperations;
+    this.credentialsStore = zookeeperCredentialsStore;
+    this.groupMappingOperations = groupMappingOperations;
   }
 
   @Override
@@ -48,13 +64,28 @@ class HdfsPlanShared implements ServicePlanDefinition {
       throws ServiceInstanceExistsException, ServiceBrokerException {
     UUID instanceId = UUID.fromString(serviceInstance.getServiceInstanceId());
     UUID orgId = UUID.fromString(serviceInstance.getOrganizationGuid());
-    hdfsOperations.provisionDirectory(instanceId, orgId);
+    String password = RandomStringUtils.randomAlphanumeric(32);
+
+    UUID sysUser = groupMappingOperations.createSysUser(orgId, instanceId, password);
+    hdfsOperations.provisionDirectory(instanceId, orgId, sysUser);
+    credentialsStore.save(ImmutableMap.of(USER, instanceId.toString(), PASSWORD, password),
+        instanceId);
   }
 
   @Override
   public Map<String, Object> bind(ServiceInstance serviceInstance) throws ServiceBrokerException {
     UUID instanceId = UUID.fromString(serviceInstance.getServiceInstanceId());
     UUID orgId = UUID.fromString(serviceInstance.getOrganizationGuid());
-    return bindingOperations.createCredentialsMap(instanceId, orgId);
+    Map<String, Object> configurationMap =
+        bindingOperations.createCredentialsMap(instanceId, orgId);
+    Map<String, Object> credentials = credentialsStore.get(instanceId);
+
+    return new HashMap<String, Object>() {
+      {
+        putAll(configurationMap);
+        putAll(credentials);
+      }
+    };
   }
+
 }

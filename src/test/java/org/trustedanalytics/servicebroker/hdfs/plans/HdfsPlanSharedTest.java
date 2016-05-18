@@ -24,9 +24,12 @@ import static org.trustedanalytics.servicebroker.test.cloudfoundry.CfModelsFacto
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Optional;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
+import org.apache.http.annotation.Immutable;
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
 import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
 import org.junit.Before;
@@ -63,7 +66,7 @@ public final class HdfsPlanSharedTest extends HdfsPlanTestBase {
   @Test
   public void provision_templateWithOrgAndInstanceVariables_replaceVariablesWithValuesAndCreateDir() throws Exception {
     ServiceInstance serviceInstance = getServiceInstance();
-    planUnderTest.provision(serviceInstance);
+    planUnderTest.provision(serviceInstance, Optional.empty());
     verify(hdfsClient).createDir(getDirectoryPathToProvision(serviceInstance));
     verify(hdfsClient).setPermission(getDirectoryPathToProvision(serviceInstance), FS_PERMISSION);
     verifyNoMoreInteractions(hdfsClient, encryptedHdfsClient);
@@ -73,7 +76,7 @@ public final class HdfsPlanSharedTest extends HdfsPlanTestBase {
   public void provision_hdfsClientFails_rethrowAsServiceBrokerException() throws Exception {
     ServiceInstance serviceInstance = getServiceInstance();
     doThrow(new IOException()).when(hdfsClient).createDir(getDirectoryPathToProvision(serviceInstance));
-    planUnderTest.provision(serviceInstance);
+    planUnderTest.provision(serviceInstance, Optional.empty());
   }
 
   @Test

@@ -13,46 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.trustedanalytics.servicebroker.hdfs.config;
-
-import javax.validation.constraints.NotNull;
+package org.trustedanalytics.servicebroker.hdfs.config.hgm;
 
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-@Configuration
-public class ExternalConfiguration {
+import javax.validation.constraints.NotNull;
 
-  @Value("${store.user}")
+@Configuration
+public class HgmConfiguration {
+
+  @Value("${group.mapping.url}")
   @NotNull
   @Getter @Setter
-  private String user;
+  private String url;
 
-  @Value("${store.password}")
-  @NotNull
+  @Value("${group.mapping.https.username}")
+  @Getter @Setter
+  private String username;
+
+  @Value("${group.mapping.https.password}")
   @Getter @Setter
   private String password;
 
-  @Value("${hdfs.userspace.chroot}")
-  @NotNull
+  @Value("${group.mapping.kerberos.principal}")
   @Getter @Setter
-  private String userspaceChroot;
+  private String principal;
 
-  @Value("${hdfs.provided.zip}")
-  @NotNull
+  @Value("${group.mapping.kerberos.principalKeyTab}")
   @Getter @Setter
-  private String hdfsProvidedZip;
-
-  @Value("${hdfs.superuser}")
-  @NotNull
-  @Getter @Setter
-  private String hdfsSuperuser;
-
-  @Value("${hdfs.keytab}")
-  @NotNull
-  @Getter @Setter
-  private String hdfsSuperuserKeytab;
+  private String principalKeyTab;
 
 }

@@ -6,6 +6,19 @@ hdfs:
   userspace.chroot: /test/org/%{organization}/brokers/userspace/%{instance}
   provided.zip: 'UEsDBAoAAAAAAFyGh0cAAAAAAAAAAAAAAAADABwAaGMvVVQJAAPfqmVW56plVnV4CwABBFbn3F4EAQLYXlBLAwQUAAAACAD8dIdHkPZogNMAAABUAQAAEAAcAGhjL2hkZnMtc2l0ZS54bWxVVAkAAyyMZVb3jGVWdXgLAAEEVufcXgQBAthefY/BTsMwEETv+QqTu23KiYPrUlWpQKItIo44IjfephbpOlonEf17HHqpEHDb0c7M21WLz1PLRqDoA87zmbjNGWAdnMdmnldmze/zhc4ydcP5cuhDAwhke3Bsf2arNgwuSbaxaBsgznWm6oAH3wzJlBp1xpjqKHRA/XkSSaI9gXaHKKYBgwPxAbQHClF05LH2nW2V/HZdAqNtB9DHFJHvj7vSPFQlfytKw+/Eard5qUwhnrameN0un5W8mCesvOb+e0QEGn0N8Rfq1Xr2R7mSP17+AlBLAwQUAAAACABchodHsS8LJJsAAADSAAAAEAAcAGhjL2NvcmUtc2l0ZS54bWxVVAkAA9+qZVbnqmVWdXgLAAEEVufcXgQBAtheXY1NDsIgGET3PQWyp9idMZTGmHTnSj0Alg8kodDw09jbS9uFics3M3nDus9o0QwhGu9a3NRHjMANXhqnW/x89OSEO15V7EDIJSevwUEQCSR6LehqfZYF0U04oSEQwis2eKeMzmVUjLxCiE3BTxDSskJBJ0bgKtYSlMg29XdGt2hvZ2Ez8LdU8Uy3PEKYzQANo3u1GulPyejf4RdQSwECHgMKAAAAAABchodHAAAAAAAAAAAAAAAAAwAYAAAAAAAAABAA7UEAAAAAaGMvVVQFAAPfqmVWdXgLAAEEVufcXgQBAtheUEsBAh4DFAAAAAgA/HSHR5D2aIDTAAAAVAEAABAAGAAAAAAAAQAAAKSBPQAAAGhjL2hkZnMtc2l0ZS54bWxVVAUAAyyMZVZ1eAsAAQRW59xeBAEC2F5QSwECHgMUAAAACABchodHsS8LJJsAAADSAAAAEAAYAAAAAAABAAAApIFaAQAAaGMvY29yZS1zaXRlLnhtbFVUBQAD36plVnV4CwABBFbn3F4EAQLYXlBLBQYAAAAAAwADAPUAAAA/AgAAAAA='
   keytab: fake
+uaa:
+  tokenUri: ${vcap.services.sso.credentials.tokenUri:fake}
+  uri: ${vcap.services.sso.credentials.uaaUri:fake}
+  clientId: ${hdfs.broker.uaa.client:fake}
+  clientSecret: ${hdfs.broker.uaa.client.secret:fake}
+group.mapping:
+  url: ${hgm.url:fake}
+  kerberos:
+    principal: ${hgm.principal:fake}
+    principalKeyTab: ${hgm.principal.keytab:fake}
+  https:
+    username: ${hgm.username:fake}
+    password: ${hgm.password:fake}
 store:
   path: ${broker.store.znode:/broker/hdfs}
   user: ${system.user:test}
@@ -20,6 +33,14 @@ cf:
       - id: bare-plan
         name: bare
         description: bare
+        free: true
+      - id: create-user-directory-plan
+        name: create-user-directory
+        description: fake
+        free: true
+      - id: get-user-directory-plan
+        name: get-user-directory
+        description: fake
         free: true
       - id: shared-plan
         name: shared

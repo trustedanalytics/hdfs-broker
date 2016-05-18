@@ -11,8 +11,23 @@ hdfs:
   provided.zip: ${hadoop.provided.zip:{}}
   #keytab for hdfs superuser, which will create encrypted zones
   keytab: ${hdfs.keytab:{}}
+#parameters for communication between hdfs-broker and hadoop groups mapping server
+group.mapping:
+  url: ${hgm.url}
+  kerberos:
+    principal: ${hgm.principal:}
+    principalKeyTab: ${hgm.principal.keytab:}
+  https:
+    username: ${hgm.username:}
+    password: ${hgm.password:}
+#parameters for communication between hdfs-broker and uaa
+uaa:
+  tokenUri: ${vcap.services.sso.credentials.tokenUri}
+  uri: ${vcap.services.sso.credentials.uaaUri}
+  clientId: ${vcap.services.sso.credentials.clientId}
+  clientSecret: ${vcap.services.sso.credentials.clientSecret}
+#optional parameters to configure zookeeper-store
 store:
-  #optional parameter to configure zookeeper-store
   path: ${broker.store.znode:/broker/hdfs}
   user: ${system.user}
   password: ${system.user.password}
@@ -25,23 +40,27 @@ cf:
     plans:
       - id: bare-plan
         name: bare
-        description: bare
+        description: This plan return HDFS configuration defined in core-site.xml and hdfs-site.xml
         free: true
-        provisioning: false
+      - id: create-user-directory-plan
+        name: create-user-directory
+        description: This plan creates directory along with technical user who has only permissions for that directory (with HDFS configuration).
+        free: true
+      - id: get-user-directory-plan
+        name: get-user-directory
+        description: This plan based on instance created in plan create-user-direcotry (requires parameter uri from this instance). It's able to return credentials and directory (with HDFS configuration).
+        free: true
       - id: shared-plan
         name: shared
-        description: shared
+        description: This plan creates directory on hdfs where all users from organization have sufficient permissions (with HDFS configuration).
         free: true
-        provisioning: true
       - id: encrypted-plan
         name: encrypted
-        description: encrypted
+        description: This plan creates directory with encryption zones, which allow for encryption at-rest on HDFS (with HDFS configuration).
         free: true
-        provisioning: true
       - id: multitenant-plan
         name: multitenant
-        description: multitenant
+        description: This plan provides template for multitenant TAP applications.
         free: true
-        provisioning: false
     metadata:
       imageUrl: ${IMAGE_URL:}
