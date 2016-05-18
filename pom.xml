@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hdfs-broker</artifactId>
-    <version>0.10.1</version>
+    <version>0.10.2</version>
 
     <parent>
         <groupId>org.trustedanalytics</groupId>
@@ -16,7 +16,7 @@
         <brokerStoreVersion>0.5.14</brokerStoreVersion>
         <start-class>org.trustedanalytics.servicebroker.hdfs.config.Application</start-class>
         <jacoco-measurement-instructions>0.2900</jacoco-measurement-instructions>
-        <jacoco-measurement-lines>0.4400</jacoco-measurement-lines>
+        <jacoco-measurement-lines>0.4300</jacoco-measurement-lines>
         <jacoco-measurement-classes>0.6900</jacoco-measurement-classes>
     </properties>
 

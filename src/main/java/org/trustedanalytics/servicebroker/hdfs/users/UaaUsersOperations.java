@@ -27,7 +27,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.trustedanalytics.cloud.auth.HeaderAddingHttpInterceptor;
 import org.trustedanalytics.cloud.uaa.UaaClient;
-import org.trustedanalytics.org.cloudfoundry.identity.uaa.scim.ScimUser;
 import org.trustedanalytics.servicebroker.hdfs.config.uaa.UaaConfiguration;
 
 @Component

@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.google.common.collect.ImmutableMap;
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
 import org.cloudfoundry.community.servicebroker.exception.ServiceInstanceExistsException;
 import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
@@ -33,7 +32,8 @@ import org.trustedanalytics.servicebroker.framework.store.CredentialsStore;
 import org.trustedanalytics.servicebroker.hdfs.path.HdfsBrokerInstancePath;
 import org.trustedanalytics.servicebroker.hdfs.plans.binding.HdfsSpecificOrgBindingOperations;
 import org.trustedanalytics.servicebroker.hdfs.plans.provisioning.HdfsDirectoryProvisioningOperations;
-import org.trustedanalytics.servicebroker.hdfs.users.GroupMappingOperations;
+
+import com.google.common.collect.ImmutableMap;
 
 @Component("get-user-directory")
 class HdfsPlanGetUserDirectory implements ServicePlanDefinition {
@@ -41,15 +41,12 @@ class HdfsPlanGetUserDirectory implements ServicePlanDefinition {
   private static final Logger LOGGER = LoggerFactory.getLogger(HdfsPlanCreateUserDirectory.class);
   private static final String URI_KEY = "uri";
 
-  private final HdfsDirectoryProvisioningOperations hdfsOperations;
   private final HdfsSpecificOrgBindingOperations bindingOperations;
   private final CredentialsStore credentialsStore;
 
   @Autowired
-  public HdfsPlanGetUserDirectory(HdfsDirectoryProvisioningOperations hdfsOperations,
-      HdfsSpecificOrgBindingOperations bindingOperations,
+  public HdfsPlanGetUserDirectory(HdfsSpecificOrgBindingOperations bindingOperations,
       CredentialsStore zookeeperCredentialsStore) {
-    this.hdfsOperations = hdfsOperations;
     this.bindingOperations = bindingOperations;
     this.credentialsStore = zookeeperCredentialsStore;
   }
