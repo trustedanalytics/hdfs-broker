@@ -62,7 +62,7 @@ class UaaClientTokenRetriver {
             .queryParam(GRANT_TYPE, GRANT_TYPE_CREDENTIALS)
             .queryParam(RESPONSE_TYPE, RESPONSE_TYPE_TOKEN).build().encode().toUri();
     HttpEntity<String> entity = new HttpEntity<>(PARAMETERS, headers);
-    return uaaRestTemplate.postForObject(uaaUri, entity, UaaTokenResponse.class).getAccess_token();
+    return uaaRestTemplate.postForObject(uaaUri, entity, UaaTokenResponse.class).getAccessToken();
   }
 
   private RestTemplate createRestTemplate() {

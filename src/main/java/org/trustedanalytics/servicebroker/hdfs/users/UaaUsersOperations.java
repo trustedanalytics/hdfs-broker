@@ -44,7 +44,7 @@ class UaaUsersOperations {
 
   public UUID createUser(UUID user, String password) throws ServiceBrokerException {
     UaaClient uaaClient = new UaaClient(createRestTemplate(), uaaConfiguration.getUri());
-    ScimUser scimUser = uaaClient.createUser(user.toString(), password);
+    uaaClient.createUser(user.toString(), password);
     return getUserId(user);
   }
 

@@ -39,8 +39,6 @@ import org.trustedanalytics.servicebroker.hdfs.users.GroupMappingOperations;
 class HdfsPlanGetUserDirectory implements ServicePlanDefinition {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(HdfsPlanCreateUserDirectory.class);
-  private static final String USER = "user";
-  private static final String PASSWORD = "password";
   private static final String URI_KEY = "uri";
 
   private final HdfsDirectoryProvisioningOperations hdfsOperations;
@@ -50,7 +48,7 @@ class HdfsPlanGetUserDirectory implements ServicePlanDefinition {
   @Autowired
   public HdfsPlanGetUserDirectory(HdfsDirectoryProvisioningOperations hdfsOperations,
       HdfsSpecificOrgBindingOperations bindingOperations,
-      GroupMappingOperations groupMappingOperations, CredentialsStore zookeeperCredentialsStore) {
+      CredentialsStore zookeeperCredentialsStore) {
     this.hdfsOperations = hdfsOperations;
     this.bindingOperations = bindingOperations;
     this.credentialsStore = zookeeperCredentialsStore;
@@ -80,17 +78,16 @@ class HdfsPlanGetUserDirectory implements ServicePlanDefinition {
     UUID orgId = UUID.fromString(serviceInstance.getOrganizationGuid());
     Map<String, Object> configurationMap =
         bindingOperations.createCredentialsMap(instanceId, orgId);
-    Map<String, Object> credentials = credentialsStore.get(instanceId);
+    Map<String, Object> storedCredentials = credentialsStore.get(instanceId);
 
-    if (getParameterUri(credentials, URI_KEY).isPresent()) {
+    if (getParameterUri(storedCredentials, URI_KEY).isPresent()) {
       configurationMap.remove(URI_KEY);
     }
-    return new HashMap<String, Object>() {
-      {
-        putAll(configurationMap);
-        putAll(credentials);
-      }
-    };
+
+    Map<String, Object> credentials = new HashMap<>();
+    credentials.putAll(configurationMap);
+    credentials.putAll(storedCredentials);
+    return credentials;
   }
 
   private boolean isMapNotNullAndNotEmpty(Optional<Map<String, Object>> map) {

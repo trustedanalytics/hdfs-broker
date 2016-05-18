@@ -24,8 +24,6 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
 import org.cloudfoundry.community.servicebroker.exception.ServiceInstanceExistsException;
 import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.trustedanalytics.servicebroker.framework.service.ServicePlanDefinition;
@@ -39,10 +37,8 @@ import com.google.common.collect.ImmutableMap;
 @Component("create-user-directory")
 class HdfsPlanCreateUserDirectory implements ServicePlanDefinition {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(HdfsPlanCreateUserDirectory.class);
   private static final String USER = "user";
   private static final String PASSWORD = "password";
-  private static final String URI_KEY = "uri";
 
   private final HdfsDirectoryProvisioningOperations hdfsOperations;
   private final HdfsSpecificOrgBindingOperations bindingOperations;
@@ -78,14 +74,12 @@ class HdfsPlanCreateUserDirectory implements ServicePlanDefinition {
     UUID orgId = UUID.fromString(serviceInstance.getOrganizationGuid());
     Map<String, Object> configurationMap =
         bindingOperations.createCredentialsMap(instanceId, orgId);
-    Map<String, Object> credentials = credentialsStore.get(instanceId);
+    Map<String, Object> storedCredentials = credentialsStore.get(instanceId);
+    Map<String, Object> credentials = new HashMap<>();
 
-    return new HashMap<String, Object>() {
-      {
-        putAll(configurationMap);
-        putAll(credentials);
-      }
-    };
+    credentials.putAll(configurationMap);
+    credentials.putAll(storedCredentials);
+    return credentials;
   }
 
 }

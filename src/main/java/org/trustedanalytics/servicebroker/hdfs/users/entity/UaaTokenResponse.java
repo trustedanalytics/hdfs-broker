@@ -25,19 +25,19 @@ public final class UaaTokenResponse {
   private final String jti;
   private final String scope;
   private final Integer expires;
-  private final String token_type;
-  private final String access_token;
+  private final String tokenType;
+  private final String accessToken;
 
   @JsonCreator
   public UaaTokenResponse(@JsonProperty("jti") String jti,
                           @JsonProperty("scope") String scope,
                           @JsonProperty("expires_in") Integer expires,
-                          @JsonProperty("token_type") String token_type,
-                          @JsonProperty("access_token") String access_token){
+                          @JsonProperty("token_type") String tokenType,
+                          @JsonProperty("access_token") String accessToken){
     this.jti = jti;
     this.scope = scope;
     this.expires = expires;
-    this.token_type = token_type;
-    this.access_token = access_token;
+    this.tokenType = tokenType;
+    this.accessToken = accessToken;
   }
 }
