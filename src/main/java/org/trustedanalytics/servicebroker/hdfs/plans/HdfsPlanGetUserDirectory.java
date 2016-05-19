@@ -31,7 +31,6 @@ import org.trustedanalytics.servicebroker.framework.service.ServicePlanDefinitio
 import org.trustedanalytics.servicebroker.framework.store.CredentialsStore;
 import org.trustedanalytics.servicebroker.hdfs.path.HdfsBrokerInstancePath;
 import org.trustedanalytics.servicebroker.hdfs.plans.binding.HdfsSpecificOrgBindingOperations;
-import org.trustedanalytics.servicebroker.hdfs.plans.provisioning.HdfsDirectoryProvisioningOperations;
 
 import com.google.common.collect.ImmutableMap;
 
