@@ -35,9 +35,6 @@ class HdfsProvisioningClient implements HdfsDirectoryProvisioningOperations,
   private static final FsPermission FS_PERMISSION = new FsPermission(FsAction.ALL, FsAction.ALL,
       FsAction.NONE);
 
-  private static final FsPermission FS_USER_PERMISSION = new FsPermission(FsAction.ALL, FsAction.NONE,
-      FsAction.NONE);
-
   private final HdfsClient hdfsClient;
   private final HdfsClient superUserHdfsClient;
   private final String userspacePathTemplate;
@@ -65,8 +62,7 @@ class HdfsProvisioningClient implements HdfsDirectoryProvisioningOperations,
   public void provisionDirectory(UUID instanceId, UUID orgId, UUID owner) throws ServiceBrokerException {
     try {
       String path = HdfsPathTemplateUtils.fill(userspacePathTemplate, instanceId, orgId);
-      hdfsClient.createDir(path);
-      hdfsClient.setPermission(path, FS_USER_PERMISSION);
+      hdfsClient.createDir(path, FS_PERMISSION);
       superUserHdfsClient.setOwner(path, owner.toString(), orgId.toString());
     } catch (IOException e) {
       throw new ServiceBrokerException("Unable to provision directory for: " + instanceId, e);
