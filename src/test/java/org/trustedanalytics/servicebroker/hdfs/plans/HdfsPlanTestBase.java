@@ -15,20 +15,25 @@
  */
 package org.trustedanalytics.servicebroker.hdfs.plans;
 
-import org.trustedanalytics.servicebroker.framework.Credentials;
-
 import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
+import org.trustedanalytics.servicebroker.framework.Credentials;
 
 import com.google.common.collect.ImmutableMap;
 
 abstract class HdfsPlanTestBase {
 
-  static final String USERSPACE_PATH_TEMPLATE = "/org/%{organization}/userspace/%{instance}";
+  static final String USERSPACE_PATH_TEMPLATE = "/org/%{organization}/brokers/userspace/%{instance}";
 
   String getDirectoryPathToProvision(ServiceInstance serviceInstance) {
     String orgId = serviceInstance.getOrganizationGuid();
     String instanceId = serviceInstance.getServiceInstanceId();
-    return "/org/" + orgId + "/userspace/" + instanceId;
+    return "/org/" + orgId + "/brokers/userspace/" + instanceId;
+  }
+
+  String getFullDirectoryPathToProvision(ServiceInstance serviceInstance) {
+    String orgId = serviceInstance.getOrganizationGuid();
+    String instanceId = serviceInstance.getServiceInstanceId();
+    return "hdfs://namespace/org/" + orgId + "/brokers/userspace/" + instanceId + "/";
   }
 
   Credentials getInputCredentials() {
@@ -55,7 +60,7 @@ abstract class HdfsPlanTestBase {
         ),
         "key2", "value2",
         "fs.defaultFS", "hdfs://name1",
-        "uri", "hdfs://name1/org/" + orgId + "/userspace/" + instanceId + "/"
+        "uri", "hdfs://name1/org/" + orgId + "/brokers/userspace/" + instanceId + "/"
     );
     //@formatter:on
   }

@@ -23,7 +23,6 @@ import java.util.Map;
 
 import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
 import org.junit.Test;
-
 import org.trustedanalytics.servicebroker.hdfs.plans.binding.HdfsBindingClientFactory;
 
 import com.google.common.collect.ImmutableMap;
@@ -56,7 +55,7 @@ public final class HdfsPlanMultitenantTest extends HdfsPlanTestBase {
         ),
         "key2", "value2",
         "fs.defaultFS", "hdfs://name1",
-        "uri", "hdfs://name1/org/%{organization}/userspace/" + instanceId + "/"
+        "uri", "hdfs://name1/org/%{organization}/brokers/userspace/" + instanceId + "/"
     );
     //@formatter:on
   }

@@ -24,7 +24,6 @@ import org.apache.hadoop.fs.permission.FsPermission;
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import org.trustedanalytics.cfbroker.store.hdfs.helper.HdfsPathTemplateUtils;
 import org.trustedanalytics.cfbroker.store.hdfs.service.HdfsClient;
 
@@ -62,8 +61,9 @@ class HdfsProvisioningClient implements HdfsDirectoryProvisioningOperations,
   public void provisionDirectory(UUID instanceId, UUID orgId, UUID owner) throws ServiceBrokerException {
     try {
       String path = HdfsPathTemplateUtils.fill(userspacePathTemplate, instanceId, orgId);
-      hdfsClient.createDir(path, FS_PERMISSION);
+      hdfsClient.createDir(path);
       superUserHdfsClient.setOwner(path, owner.toString(), orgId.toString());
+      hdfsClient.setPermission(path, FS_PERMISSION);
     } catch (IOException e) {
       throw new ServiceBrokerException("Unable to provision directory for: " + instanceId, e);
     }
