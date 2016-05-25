@@ -59,11 +59,10 @@ class HdfsProvisioningClient implements HdfsDirectoryProvisioningOperations,
 
   @Override
   public void provisionDirectory(UUID instanceId, UUID orgId, UUID owner) throws ServiceBrokerException {
+    this.provisionDirectory(instanceId, orgId);
     try {
       String path = HdfsPathTemplateUtils.fill(userspacePathTemplate, instanceId, orgId);
-      hdfsClient.createDir(path);
       superUserHdfsClient.setOwner(path, owner.toString(), orgId.toString());
-      hdfsClient.setPermission(path, FS_PERMISSION);
     } catch (IOException e) {
       throw new ServiceBrokerException("Unable to provision directory for: " + instanceId, e);
     }
