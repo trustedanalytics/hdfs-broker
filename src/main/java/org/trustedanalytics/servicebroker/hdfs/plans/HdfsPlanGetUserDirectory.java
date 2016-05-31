@@ -53,19 +53,23 @@ class HdfsPlanGetUserDirectory implements ServicePlanDefinition {
   @Override
   public void provision(ServiceInstance serviceInstance, Optional<Map<String, Object>> parameters)
       throws ServiceInstanceExistsException, ServiceBrokerException {
-    if (!isMapNotNullAndNotEmpty(parameters)) {
-      throw new ServiceBrokerException("This plan require parametere uri");
-    }
-    String uri =
-        getParameterUri(parameters.get(), URI_KEY).orElseThrow(
-            () -> new ServiceBrokerException("No required parameter uri")).toString();
-    LOGGER.info("Detected parameter path: " + uri);
+    UUID instanceId = UUID.fromString(serviceInstance.getServiceInstanceId());
+    if (isMapNotNullAndNotEmpty(parameters)) {
+      String uri =
+          getParameterUri(parameters.get(), URI_KEY).orElseThrow(
+              () -> new ServiceBrokerException("No required parameter uri")).toString();
+      LOGGER.info("Detected parameter path: " + uri);
 
-    HdfsBrokerInstancePath instance = HdfsBrokerInstancePath.createInstance(uri);
-    credentialsStore.save(
-        ImmutableMap.<String, Object>builder()
-            .putAll(credentialsStore.get(instance.getInstanceId())).put(URI_KEY, uri).build(),
-        UUID.fromString(serviceInstance.getServiceInstanceId()));
+      HdfsBrokerInstancePath instance = HdfsBrokerInstancePath.createInstance(uri);
+      credentialsStore.save(
+          ImmutableMap.<String, Object>builder()
+              .putAll(credentialsStore.get(instance.getInstanceId())).put(URI_KEY, uri).build(),
+          instanceId);
+    }
+    else {
+      LOGGER.info("Creating instance without parameter. Only configuration will be provided");
+      credentialsStore.save(ImmutableMap.of(), instanceId);
+    }
   }
 
   @Override
@@ -75,12 +79,9 @@ class HdfsPlanGetUserDirectory implements ServicePlanDefinition {
     Map<String, Object> configurationMap =
         bindingOperations.createCredentialsMap(instanceId, orgId);
     Map<String, Object> storedCredentials = credentialsStore.get(instanceId);
-
-    if (getParameterUri(storedCredentials, URI_KEY).isPresent()) {
-      configurationMap.remove(URI_KEY);
-    }
-
     Map<String, Object> credentials = new HashMap<>();
+
+    configurationMap.remove(URI_KEY);
     credentials.putAll(configurationMap);
     credentials.putAll(storedCredentials);
     return credentials;

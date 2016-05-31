@@ -85,6 +85,18 @@ public final class HdfsPlanGetUserDirectoryTest extends HdfsPlanTestBase {
     assertThat(bind.get(URI), equalTo("toReplace"));
   }
 
+  @Test
+  public void binding_getCredentialsFromExsitsingInstanceWithoutCredentials_replaceUriVariable() throws Exception {
+    ServiceInstance serviceInstance = getServiceInstance();
+    Map<String, Object> credentials =
+        ImmutableMap.of();
+    UUID instanceId = UUID.fromString(serviceInstance.getServiceInstanceId());
+    when(zookeeperCredentialsStore.get(instanceId)).thenReturn(credentials);
+
+    Map<String, Object> bind = planUnderTest.bind(serviceInstance);
+    assertThat(bind.containsKey(URI), equalTo(false));
+  }
+
   @Test(expected = ServiceBrokerException.class)
   public void binding_withoutParamter_throwServiceBrokerException() throws Exception {
     ServiceInstance serviceInstance = getServiceInstance();
@@ -101,10 +113,12 @@ public final class HdfsPlanGetUserDirectoryTest extends HdfsPlanTestBase {
         Optional.of(ImmutableMap.of(URI, getDirectoryPathToProvision(serviceInstance))));
   }
 
-  @Test(expected = ServiceBrokerException.class)
-  public void provision_withoutUriParameter_throwServiceBrokerException() throws Exception {
+  @Test
+  public void provision_withoutUriParameter_saveEmtpyCredentialsMap() throws Exception {
     ServiceInstance serviceInstance = getServiceInstance();
+    UUID instanceId = UUID.fromString(serviceInstance.getServiceInstanceId());
     planUnderTest.provision(serviceInstance, Optional.of(ImmutableMap.of()));
+    verify(zookeeperCredentialsStore).save(ImmutableMap.of(), instanceId);
   }
 
   @Test(expected = ServiceBrokerException.class)
