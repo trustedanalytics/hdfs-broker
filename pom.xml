@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hdfs-broker</artifactId>
-    <version>0.10.7</version>
+    <version>0.10.8</version>
 
     <parent>
         <groupId>org.trustedanalytics</groupId>
@@ -140,7 +140,7 @@
         <dependency>
             <groupId>org.trustedanalytics</groupId>
             <artifactId>cf-client</artifactId>
-            <version>0.4.32</version>
+            <version>0.4.38</version>
         </dependency>
         <!-- Dependency for LOMBOK project -->
         <dependency>
