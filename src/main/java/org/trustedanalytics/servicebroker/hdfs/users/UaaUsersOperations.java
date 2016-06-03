@@ -53,7 +53,7 @@ class UaaUsersOperations {
         .orElseThrow(() -> new ServiceBrokerException("Can't create user " + user)).getGuid();
   }
 
-  private RestTemplate createRestTemplate() {
+  private RestTemplate createRestTemplate() throws ServiceBrokerException {
     ClientHttpRequestInterceptor interceptor =
         new HeaderAddingHttpInterceptor("Authorization", "bearer " + tokenRetriver.getToken());
     HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();

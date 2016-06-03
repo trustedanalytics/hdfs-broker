@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hdfs-broker</artifactId>
-    <version>0.10.8</version>
+    <version>0.10.9</version>
 
     <parent>
         <groupId>org.trustedanalytics</groupId>
@@ -15,8 +15,8 @@
         <brokerTestVersion>2.6.0</brokerTestVersion>
         <brokerStoreVersion>0.6.0</brokerStoreVersion>
         <start-class>org.trustedanalytics.servicebroker.hdfs.config.Application</start-class>
-        <jacoco-measurement-instructions>0.4000</jacoco-measurement-instructions>
-        <jacoco-measurement-lines>0.5600</jacoco-measurement-lines>
+        <jacoco-measurement-instructions>0.3900</jacoco-measurement-instructions>
+        <jacoco-measurement-lines>0.5500</jacoco-measurement-lines>
         <jacoco-measurement-classes>0.7500</jacoco-measurement-classes>
     </properties>
 
@@ -316,6 +316,13 @@
             <artifactId>broker-test-lib</artifactId>
             <version>0.4.1</version>
             <scope>test</scope>
+        </dependency>
+
+        <!-- Guava -->
+        <dependency>
+            <groupId>com.github.rholder</groupId>
+            <artifactId>guava-retrying</artifactId>
+            <version>2.0.0</version>
         </dependency>
     </dependencies>
 </project>
