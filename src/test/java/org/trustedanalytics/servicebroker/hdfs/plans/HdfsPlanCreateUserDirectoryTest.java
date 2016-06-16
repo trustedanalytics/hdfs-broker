@@ -25,8 +25,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.apache.hadoop.fs.permission.FsAction;
-import org.apache.hadoop.fs.permission.FsPermission;
+import org.apache.hadoop.fs.permission.*;
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
 import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
 import org.junit.Before;
@@ -41,10 +40,12 @@ import org.trustedanalytics.servicebroker.hdfs.plans.provisioning.HdfsProvisioni
 import org.trustedanalytics.servicebroker.hdfs.users.GroupMappingOperations;
 
 import com.google.common.collect.ImmutableMap;
+import org.trustedanalytics.servicebroker.hdfs.util.TestUtil;
 
 
 @RunWith(MockitoJUnitRunner.class)
 public final class HdfsPlanCreateUserDirectoryTest extends HdfsPlanTestBase {
+  private static final String TECH_GROUP_POSTFIX = "_sys";
 
   private static final FsPermission FS_PERMISSION = new FsPermission(FsAction.ALL, FsAction.ALL,
       FsAction.NONE);
@@ -87,6 +88,9 @@ public final class HdfsPlanCreateUserDirectoryTest extends HdfsPlanTestBase {
     when(groupMappingOperations.createSysUser(any(UUID.class), any(UUID.class), anyString()))
         .thenReturn(userId);
     planUnderTest.provision(serviceInstance, Optional.of(ImmutableMap.of()));
+    
+    verify(encryptedHdfsClient).addAclEntry("/org/"+ serviceInstance.getOrganizationGuid()+"/brokers/userspace/"+serviceInstance.getServiceInstanceId(), TestUtil.hiveUserAcl());
+    verify(encryptedHdfsClient).addAclEntry("/org/"+ serviceInstance.getOrganizationGuid()+"/brokers/userspace/"+serviceInstance.getServiceInstanceId(), TestUtil.hiveDefaultUserAcl());
 
     verify(groupMappingOperations).createSysUser(eq(orgId), eq(instanceId), anyString());
     verify(hdfsClient).createDir(path);

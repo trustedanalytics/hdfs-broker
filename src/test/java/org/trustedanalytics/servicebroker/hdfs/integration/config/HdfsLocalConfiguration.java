@@ -22,6 +22,7 @@ import java.net.URISyntaxException;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hdfs.DFSConfigKeys;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -60,6 +61,7 @@ public class HdfsLocalConfiguration {
         File baseDir = new File("./target/hdfs/" + "testName").getAbsoluteFile();
         FileUtil.fullyDelete(baseDir);
         org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration(false);
+        conf.set(DFSConfigKeys.DFS_NAMENODE_ACLS_ENABLED_KEY,"true");
         conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, baseDir.getAbsolutePath());
         MiniDFSCluster.Builder builder = new MiniDFSCluster.Builder(conf);
         MiniDFSCluster cluster = builder.build();

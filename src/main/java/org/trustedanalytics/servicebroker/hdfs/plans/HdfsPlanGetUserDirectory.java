@@ -82,7 +82,7 @@ class HdfsPlanGetUserDirectory implements ServicePlanDefinition {
         UUID orgId = UUID.fromString(serviceInstance.getOrganizationGuid());
         String password = RandomStringUtils.randomAlphanumeric(32);
 
-        UUID sysUser = groupMappingOperations.createSysUser(orgId, instanceId, password);
+        groupMappingOperations.createSysUser(orgId, instanceId, password);
         hdfsOperations.addSystemUsersGroupAcl(instance.getHdfsUri(), orgId);
         Optional<HdfsBrokerInstancePath> uploaderPath = HdfsBrokerInstancePath.getUploaderPath(uri);
         if(uploaderPath.isPresent()) {

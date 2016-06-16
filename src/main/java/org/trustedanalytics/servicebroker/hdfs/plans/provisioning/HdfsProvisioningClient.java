@@ -52,6 +52,7 @@ class HdfsProvisioningClient implements HdfsDirectoryProvisioningOperations,
       String path = HdfsPathTemplateUtils.fill(userspacePathTemplate, instanceId, orgId);
       hdfsClient.createDir(path);
       hdfsClient.setPermission(path, FS_PERMISSION);
+      addHiveUserGroupAcl(path,orgId);
     } catch (IOException e) {
       throw new ServiceBrokerException("Unable to provision directory for: " + instanceId, e);
     }
@@ -81,6 +82,24 @@ class HdfsProvisioningClient implements HdfsDirectoryProvisioningOperations,
 
       superUserHdfsClient.addAclEntry(path, systemUserAcl);
       superUserHdfsClient.addAclEntry(path, systemDefaultUserAcl);
+    } catch (IOException e) {
+      throw new ServiceBrokerException("Unable to add system users groups ACL for path: " + path, e);
+    }
+  }
+
+  @Override
+  public void addHiveUserGroupAcl(String path, UUID orgId) throws ServiceBrokerException {
+    try {
+      AclEntry.Builder builder = new AclEntry.Builder()
+              .setType(AclEntryType.GROUP)
+              .setPermission(FsAction.ALL)
+              .setName("hive");
+
+      AclEntry hiveDefaultUserAcl = builder.setScope(AclEntryScope.DEFAULT).build();
+      AclEntry hiveUserAcl = builder.setScope(AclEntryScope.ACCESS).build();
+
+      superUserHdfsClient.addAclEntry(path, hiveUserAcl);
+      superUserHdfsClient.addAclEntry(path, hiveDefaultUserAcl);
     } catch (IOException e) {
       throw new ServiceBrokerException("Unable to add system users groups ACL for path: " + path, e);
     }

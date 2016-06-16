@@ -23,7 +23,6 @@ import java.util.regex.Pattern;
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
 
 import lombok.Getter;
-import org.trustedanalytics.servicebroker.hdfs.plans.provisioning.HdfsDirectoryProvisioningOperations;
 
 public final class HdfsBrokerInstancePath {
   private static final String UUID_REGEX = "[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}";

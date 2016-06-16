@@ -17,6 +17,9 @@ package org.trustedanalytics.servicebroker.hdfs.plans;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.startsWith;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -27,8 +30,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.hadoop.fs.permission.FsAction;
-import org.apache.hadoop.fs.permission.FsPermission;
+import org.apache.hadoop.fs.permission.*;
 import org.apache.http.annotation.Immutable;
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
 import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
@@ -41,6 +43,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.trustedanalytics.cfbroker.store.hdfs.service.HdfsClient;
 import org.trustedanalytics.servicebroker.hdfs.plans.binding.HdfsBindingClientFactory;
 import org.trustedanalytics.servicebroker.hdfs.plans.provisioning.HdfsProvisioningClientFactory;
+import org.trustedanalytics.servicebroker.hdfs.util.TestUtil;
 
 @RunWith(MockitoJUnitRunner.class)
 public final class HdfsPlanSharedTest extends HdfsPlanTestBase {
@@ -69,6 +72,10 @@ public final class HdfsPlanSharedTest extends HdfsPlanTestBase {
     planUnderTest.provision(serviceInstance, Optional.empty());
     verify(hdfsClient).createDir(getDirectoryPathToProvision(serviceInstance));
     verify(hdfsClient).setPermission(getDirectoryPathToProvision(serviceInstance), FS_PERMISSION);
+
+    verify(encryptedHdfsClient).addAclEntry("/org/"+ serviceInstance.getOrganizationGuid()+"/brokers/userspace/"+serviceInstance.getServiceInstanceId(), TestUtil.hiveUserAcl());
+    verify(encryptedHdfsClient).addAclEntry("/org/"+ serviceInstance.getOrganizationGuid()+"/brokers/userspace/"+serviceInstance.getServiceInstanceId(), TestUtil.hiveDefaultUserAcl());
+
     verifyNoMoreInteractions(hdfsClient, encryptedHdfsClient);
   }
 
