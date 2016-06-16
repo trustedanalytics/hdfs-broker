@@ -55,7 +55,6 @@
                         <include>src/**/*.java</include>
                         <include>provision.sh</include>
                         <include>deprovision.sh</include>
-                        <include>pack.sh</include>
                     </includes>
                     <excludes>
                         <exclude>src/main/java/org/trustedanalytics/servicebroker/hdfs/config/BrokerConfig.java</exclude>
