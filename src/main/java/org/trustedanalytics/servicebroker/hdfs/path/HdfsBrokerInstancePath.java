@@ -15,22 +15,27 @@
  */
 package org.trustedanalytics.servicebroker.hdfs.path;
 
+import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import lombok.Getter;
-
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
+
+import lombok.Getter;
+import org.trustedanalytics.servicebroker.hdfs.plans.provisioning.HdfsDirectoryProvisioningOperations;
 
 public final class HdfsBrokerInstancePath {
   private static final String UUID_REGEX = "[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}";
   private static final String INSTANCE = "instance";
   private static final String NAMESPACE = "namespace";
   private static final String ORG = "org";
+  private static final String DATASET = "dataset";
   private static final String HDFS_URI_REGEX = String.format(
       "^hdfs://(?<%s>\\w+)/org/(?<%s>%s)/brokers/userspace/(?<%s>%s)/", NAMESPACE, ORG, UUID_REGEX,
       INSTANCE, UUID_REGEX);
+  private static final String UPLOADER_URI_REGEX = String.format("%s(?<%s>%s/)?", HDFS_URI_REGEX,
+      DATASET, UUID_REGEX);
 
   @Getter
   private final String hdfsUri;
@@ -48,15 +53,33 @@ public final class HdfsBrokerInstancePath {
     this.namespace = namespace;
   }
 
-  public static HdfsBrokerInstancePath createInstance(String hdfsUri) throws ServiceBrokerException {
-    Matcher matcher = Pattern.compile(HDFS_URI_REGEX).matcher(hdfsUri);
+  public static Optional<HdfsBrokerInstancePath> getUploaderPath(String hdfsUri)
+      throws ServiceBrokerException {
+    Matcher matcher = validatePattern(hdfsUri, UPLOADER_URI_REGEX);
+    HdfsBrokerInstancePath hdfsBrokerInstancePath = null;
+    if (matcher.group(DATASET) != null) {
+      hdfsBrokerInstancePath =
+          new HdfsBrokerInstancePath(matcher.group(), matcher.group(NAMESPACE),
+              UUID.fromString(matcher.group(ORG)), UUID.fromString(matcher.group(INSTANCE)));
+    }
+    return Optional.ofNullable(hdfsBrokerInstancePath);
+  }
+
+  public static HdfsBrokerInstancePath getInstancePath(String hdfsUri)
+      throws ServiceBrokerException {
+    Matcher matcher = validatePattern(hdfsUri, HDFS_URI_REGEX);
+    return new HdfsBrokerInstancePath(matcher.group(), matcher.group(NAMESPACE),
+        UUID.fromString(matcher.group(ORG)), UUID.fromString(matcher.group(INSTANCE)));
+  }
+
+  private static Matcher validatePattern(String hdfsUri, String regex)
+      throws ServiceBrokerException {
+    Matcher matcher = Pattern.compile(regex).matcher(hdfsUri);
     if (!matcher.find()) {
       throw new ServiceBrokerException(
           "Invalid hdfs path, doesn't match template: hdfs://<namespace>/org/<uuid>/brokers/userspace/<uuid>/ - "
               + hdfsUri);
     }
-    return new HdfsBrokerInstancePath(hdfsUri, matcher.group(NAMESPACE), UUID.fromString(matcher
-        .group(ORG)), UUID.fromString(matcher.group(INSTANCE)));
+    return matcher;
   }
-
 }

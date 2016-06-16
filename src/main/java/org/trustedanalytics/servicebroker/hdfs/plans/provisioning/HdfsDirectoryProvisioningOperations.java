@@ -22,4 +22,5 @@ import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException
 public interface HdfsDirectoryProvisioningOperations {
   void provisionDirectory(UUID instanceId, UUID orgId) throws ServiceBrokerException;
   void provisionDirectory(UUID instanceId, UUID orgId, UUID owner) throws ServiceBrokerException;
+  void addSystemUsersGroupAcl(String path, UUID orgId) throws ServiceBrokerException;
 }

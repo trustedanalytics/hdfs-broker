@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.apache.hadoop.fs.permission.AclEntry;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
@@ -33,10 +34,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.trustedanalytics.cfbroker.store.hdfs.service.HdfsClient;
 import org.trustedanalytics.servicebroker.framework.store.zookeeper.ZookeeperCredentialsStore;
 import org.trustedanalytics.servicebroker.hdfs.plans.binding.HdfsBindingClientFactory;
 
 import com.google.common.collect.ImmutableMap;
+import org.trustedanalytics.servicebroker.hdfs.plans.provisioning.HdfsProvisioningClientFactory;
+import org.trustedanalytics.servicebroker.hdfs.users.GroupMappingOperations;
 
 
 @RunWith(MockitoJUnitRunner.class)
@@ -51,24 +55,83 @@ public final class HdfsPlanGetUserDirectoryTest extends HdfsPlanTestBase {
   private HdfsPlanGetUserDirectory planUnderTest;
 
   @Mock
+  private HdfsClient hdfsClient;
+
+  @Mock
+  private HdfsClient encryptedHdfsClient;
+
+  @Mock
   private ZookeeperCredentialsStore zookeeperCredentialsStore;
+
+  @Mock
+  private GroupMappingOperations groupMappingOperations;
 
   @Before
   public void setup() {
     planUnderTest =
-        new HdfsPlanGetUserDirectory(HdfsBindingClientFactory.create(getInputCredentials(),
-            USERSPACE_PATH_TEMPLATE), zookeeperCredentialsStore);
+        new HdfsPlanGetUserDirectory(
+            HdfsProvisioningClientFactory.create(hdfsClient, encryptedHdfsClient, USERSPACE_PATH_TEMPLATE),
+            HdfsBindingClientFactory.create(getInputCredentials(), USERSPACE_PATH_TEMPLATE),
+            groupMappingOperations,
+            zookeeperCredentialsStore);
   }
 
   @Test
-  public void provision_templateWithOrgAndInstanceVariables_replaceVariablesWithValuesAndCreateDir()
+  public void provision_correctTemplateGetUserFromCredentials_replaceVariablesWithValuesAndCreateDir()
       throws Exception {
     ServiceInstance serviceInstance = getServiceInstance();
     UUID instanceId = UUID.fromString(serviceInstance.getServiceInstanceId());
+    when(zookeeperCredentialsStore.exists(instanceId)).thenReturn(true);
+
     planUnderTest.provision(serviceInstance,
         Optional.of(ImmutableMap.of(URI, getFullDirectoryPathToProvision(serviceInstance))));
 
-    verify(zookeeperCredentialsStore).get(instanceId);
+    verify(zookeeperCredentialsStore).exists(instanceId);
+  }
+
+  @Test
+  public void provision_correctUploaderTemplateGetUserFromCredentials_replaceVariablesWithValuesAndCreateDir()
+      throws Exception {
+    ServiceInstance serviceInstance = getServiceInstance();
+    UUID instanceId = UUID.fromString(serviceInstance.getServiceInstanceId());
+    when(zookeeperCredentialsStore.exists(instanceId)).thenReturn(false);
+
+    String uploaderPath = getFullDirectoryPathToProvision(serviceInstance) + UUID.randomUUID().toString() + "/000000_1";
+
+    planUnderTest.provision(serviceInstance,
+        Optional.of(ImmutableMap.of(URI, uploaderPath)));
+
+    verify(zookeeperCredentialsStore).exists(instanceId);
+    verify(encryptedHdfsClient, times(4)).addAclEntry(anyString(), any(AclEntry.class));
+  }
+
+  @Test
+  public void provision_incorrectUploaderTemplateGetUserFromCredentials_replaceVariablesWithValuesAndCreateDir()
+      throws Exception {
+    ServiceInstance serviceInstance = getServiceInstance();
+    UUID instanceId = UUID.fromString(serviceInstance.getServiceInstanceId());
+    when(zookeeperCredentialsStore.exists(instanceId)).thenReturn(false);
+
+    String uploaderPath = getFullDirectoryPathToProvision(serviceInstance) + "a/000000_1";
+
+    planUnderTest.provision(serviceInstance,
+        Optional.of(ImmutableMap.of(URI, uploaderPath)));
+
+    verify(zookeeperCredentialsStore).exists(instanceId);
+    verify(encryptedHdfsClient, times(2)).addAclEntry(anyString(), any(AclEntry.class));
+  }
+
+  @Test
+  public void provision_correctTemplateCreateNewUser_replaceVariablesWithValuesAndCreateDir()
+      throws Exception {
+    ServiceInstance serviceInstance = getServiceInstance();
+    UUID instanceId = UUID.fromString(serviceInstance.getServiceInstanceId());
+    when(zookeeperCredentialsStore.exists(instanceId)).thenReturn(false);
+
+    planUnderTest.provision(serviceInstance,
+        Optional.of(ImmutableMap.of(URI, getFullDirectoryPathToProvision(serviceInstance))));
+
+    verify(zookeeperCredentialsStore).exists(instanceId);
   }
 
   @Test

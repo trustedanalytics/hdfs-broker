@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hdfs-broker</artifactId>
-    <version>0.10.9</version>
+    <version>0.10.10</version>
 
     <parent>
         <groupId>org.trustedanalytics</groupId>
@@ -13,11 +13,11 @@
     <properties>
         <brokerVersion>2.6.0</brokerVersion>
         <brokerTestVersion>2.6.0</brokerTestVersion>
-        <brokerStoreVersion>0.6.0</brokerStoreVersion>
+        <brokerStoreVersion>0.6.2</brokerStoreVersion>
         <start-class>org.trustedanalytics.servicebroker.hdfs.config.Application</start-class>
-        <jacoco-measurement-instructions>0.3900</jacoco-measurement-instructions>
-        <jacoco-measurement-lines>0.5500</jacoco-measurement-lines>
-        <jacoco-measurement-classes>0.7500</jacoco-measurement-classes>
+        <jacoco-measurement-instructions>0.4700</jacoco-measurement-instructions>
+        <jacoco-measurement-lines>0.6400</jacoco-measurement-lines>
+        <jacoco-measurement-classes>0.7600</jacoco-measurement-classes>
     </properties>
 
     <build>
@@ -55,6 +55,7 @@
                         <include>src/**/*.java</include>
                         <include>provision.sh</include>
                         <include>deprovision.sh</include>
+                        <include>pack.sh</include>
                     </includes>
                     <excludes>
                         <exclude>src/main/java/org/trustedanalytics/servicebroker/hdfs/config/BrokerConfig.java</exclude>
@@ -154,29 +155,6 @@
             <groupId>org.trustedanalytics.servicebroker.repository</groupId>
             <artifactId>broker-store-commons</artifactId>
             <version>${brokerStoreVersion}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.trustedanalytics.servicebroker.repository</groupId>
-            <artifactId>zookeeper-broker-store</artifactId>
-            <version>${brokerStoreVersion}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>javax.servlet</groupId>
-                    <artifactId>servlet-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>tomcat</groupId>
-                    <artifactId>jasper-compiler</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>tomcat</groupId>
-                    <artifactId>jasper-runtime</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.trustedanalytics.servicebroker.repository</groupId>
@@ -309,7 +287,7 @@
         <dependency>
             <groupId>org.trustedanalytics</groupId>
             <artifactId>broker-lib</artifactId>
-            <version>0.6.0</version>
+            <version>0.6.3</version>
         </dependency>
         <dependency>
             <groupId>org.trustedanalytics</groupId>
@@ -317,7 +295,6 @@
             <version>0.4.1</version>
             <scope>test</scope>
         </dependency>
-
         <!-- Guava -->
         <dependency>
             <groupId>com.github.rholder</groupId>

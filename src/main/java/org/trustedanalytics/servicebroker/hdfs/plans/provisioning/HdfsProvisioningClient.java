@@ -19,8 +19,7 @@ import java.io.IOException;
 import java.util.UUID;
 
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.permission.FsAction;
-import org.apache.hadoop.fs.permission.FsPermission;
+import org.apache.hadoop.fs.permission.*;
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -33,6 +32,7 @@ class HdfsProvisioningClient implements HdfsDirectoryProvisioningOperations,
 
   private static final FsPermission FS_PERMISSION = new FsPermission(FsAction.ALL, FsAction.ALL,
       FsAction.NONE);
+  private static final String TECH_GROUP_POSTFIX = "_sys";
 
   private final HdfsClient hdfsClient;
   private final HdfsClient superUserHdfsClient;
@@ -65,6 +65,24 @@ class HdfsProvisioningClient implements HdfsDirectoryProvisioningOperations,
       superUserHdfsClient.setOwner(path, owner.toString(), orgId.toString());
     } catch (IOException e) {
       throw new ServiceBrokerException("Unable to provision directory for: " + instanceId, e);
+    }
+  }
+
+  @Override
+  public void addSystemUsersGroupAcl(String path, UUID orgId) throws ServiceBrokerException {
+    try {
+      AclEntry.Builder builder = new AclEntry.Builder()
+          .setType(AclEntryType.GROUP)
+          .setPermission(FsAction.ALL)
+          .setName(orgId.toString() + TECH_GROUP_POSTFIX);
+
+      AclEntry systemDefaultUserAcl = builder.setScope(AclEntryScope.DEFAULT).build();
+      AclEntry systemUserAcl = builder.setScope(AclEntryScope.ACCESS).build();
+
+      superUserHdfsClient.addAclEntry(path, systemUserAcl);
+      superUserHdfsClient.addAclEntry(path, systemDefaultUserAcl);
+    } catch (IOException e) {
+      throw new ServiceBrokerException("Unable to add system users groups ACL for path: " + path, e);
     }
   }
 

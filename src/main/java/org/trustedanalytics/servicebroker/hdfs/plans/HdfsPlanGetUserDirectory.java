@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
 import org.cloudfoundry.community.servicebroker.exception.ServiceInstanceExistsException;
 import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
@@ -33,21 +34,30 @@ import org.trustedanalytics.servicebroker.hdfs.path.HdfsBrokerInstancePath;
 import org.trustedanalytics.servicebroker.hdfs.plans.binding.HdfsSpecificOrgBindingOperations;
 
 import com.google.common.collect.ImmutableMap;
+import org.trustedanalytics.servicebroker.hdfs.plans.provisioning.HdfsDirectoryProvisioningOperations;
+import org.trustedanalytics.servicebroker.hdfs.users.GroupMappingOperations;
 
 @Component("get-user-directory")
 class HdfsPlanGetUserDirectory implements ServicePlanDefinition {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(HdfsPlanCreateUserDirectory.class);
   private static final String URI_KEY = "uri";
+  private static final String USER = "user";
+  private static final String PASSWORD = "password";
 
+  private final HdfsDirectoryProvisioningOperations hdfsOperations;
   private final HdfsSpecificOrgBindingOperations bindingOperations;
+  private final GroupMappingOperations groupMappingOperations;
   private final CredentialsStore credentialsStore;
 
   @Autowired
-  public HdfsPlanGetUserDirectory(HdfsSpecificOrgBindingOperations bindingOperations,
-      CredentialsStore zookeeperCredentialsStore) {
+  public HdfsPlanGetUserDirectory(HdfsDirectoryProvisioningOperations hdfsOperations,
+      HdfsSpecificOrgBindingOperations bindingOperations,
+      GroupMappingOperations groupMappingOperations, CredentialsStore zookeeperCredentialsStore) {
+    this.hdfsOperations = hdfsOperations;
     this.bindingOperations = bindingOperations;
     this.credentialsStore = zookeeperCredentialsStore;
+    this.groupMappingOperations = groupMappingOperations;
   }
 
   @Override
@@ -60,13 +70,29 @@ class HdfsPlanGetUserDirectory implements ServicePlanDefinition {
               () -> new ServiceBrokerException("No required parameter uri")).toString();
       LOGGER.info("Detected parameter path: " + uri);
 
-      HdfsBrokerInstancePath instance = HdfsBrokerInstancePath.createInstance(uri);
-      credentialsStore.save(
-          ImmutableMap.<String, Object>builder()
-              .putAll(credentialsStore.get(instance.getInstanceId())).put(URI_KEY, uri).build(),
-          instanceId);
-    }
-    else {
+      HdfsBrokerInstancePath instance = HdfsBrokerInstancePath.getInstancePath(uri);
+      if (credentialsStore.exists(instance.getInstanceId())) {
+        LOGGER.info("Get existing user for path: " + instance.getHdfsUri());
+        credentialsStore.save(
+            ImmutableMap.<String, Object>builder()
+                .putAll(credentialsStore.get(instance.getInstanceId())).put(URI_KEY, uri).build(),
+            instanceId);
+      } else {
+        LOGGER.info("Create new system user for path: " + instance.getHdfsUri());
+        UUID orgId = UUID.fromString(serviceInstance.getOrganizationGuid());
+        String password = RandomStringUtils.randomAlphanumeric(32);
+
+        UUID sysUser = groupMappingOperations.createSysUser(orgId, instanceId, password);
+        hdfsOperations.addSystemUsersGroupAcl(instance.getHdfsUri(), orgId);
+        Optional<HdfsBrokerInstancePath> uploaderPath = HdfsBrokerInstancePath.getUploaderPath(uri);
+        if(uploaderPath.isPresent()) {
+          hdfsOperations.addSystemUsersGroupAcl(uploaderPath.get().getHdfsUri(), orgId);
+        }
+        credentialsStore.save(
+            ImmutableMap.of(USER, instanceId.toString(), PASSWORD, password, URI_KEY, uri),
+            instanceId);
+      }
+    } else {
       LOGGER.info("Creating instance without parameter. Only configuration will be provided");
       credentialsStore.save(ImmutableMap.of(), instanceId);
     }
