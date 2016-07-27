@@ -63,7 +63,9 @@ class HdfsPlanCreateUserDirectory implements ServicePlanDefinition {
     String password = RandomStringUtils.randomAlphanumeric(32);
 
     UUID sysUser = groupMappingOperations.createSysUser(orgId, instanceId, password);
-    hdfsOperations.provisionDirectory(instanceId, orgId, sysUser);
+    String path = hdfsOperations.provisionDirectory(instanceId, orgId, sysUser);
+    hdfsOperations.addSystemUsersGroupAcl(path, orgId);
+
     credentialsStore.save(ImmutableMap.of(USER, instanceId.toString(), PASSWORD, password),
         instanceId);
   }

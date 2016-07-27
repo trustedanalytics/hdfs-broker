@@ -25,19 +25,25 @@ public class TestUtil {
     public static final String HIVE_USER = "hive";
 
     public static AclEntry hiveDefaultUserAcl(){
-        AclEntry.Builder builder = new AclEntry.Builder()
-                .setType(AclEntryType.GROUP)
-                .setPermission(FsAction.ALL)
-                .setName(TestUtil.HIVE_USER);
-
-        return builder.setScope(AclEntryScope.DEFAULT).build();
+        return defaultUserAcl(TestUtil.HIVE_USER);
     }
 
     public static AclEntry hiveUserAcl(){
-        AclEntry.Builder builder = new AclEntry.Builder()
-                .setType(AclEntryType.GROUP)
-                .setPermission(FsAction.ALL)
-                .setName(TestUtil.HIVE_USER);
-        return builder.setScope(AclEntryScope.ACCESS).build();
+        return userAcl(TestUtil.HIVE_USER);
+    }
+
+    public static AclEntry defaultUserAcl(String user){
+        return build(user).setScope(AclEntryScope.DEFAULT).build();
+    }
+
+    public static AclEntry userAcl(String user){
+        return build(user).setScope(AclEntryScope.ACCESS).build();
+    }
+
+    private static AclEntry.Builder build(String user){
+        return new AclEntry.Builder()
+            .setType(AclEntryType.GROUP)
+            .setPermission(FsAction.ALL)
+            .setName(user);
     }
 }

@@ -15,13 +15,13 @@
  */
 package org.trustedanalytics.servicebroker.hdfs.plans.provisioning;
 
-import java.util.UUID;
-
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
 
+import java.util.UUID;
+
 public interface HdfsDirectoryProvisioningOperations {
-  void provisionDirectory(UUID instanceId, UUID orgId) throws ServiceBrokerException;
-  void provisionDirectory(UUID instanceId, UUID orgId, UUID owner) throws ServiceBrokerException;
+  String provisionDirectory(UUID instanceId, UUID orgId) throws ServiceBrokerException;
+  String provisionDirectory(UUID instanceId, UUID orgId, UUID owner) throws ServiceBrokerException;
   void addSystemUsersGroupAcl(String path, UUID orgId) throws ServiceBrokerException;
   void addHiveUserGroupAcl(String path, UUID orgId) throws ServiceBrokerException;
 }
